@@ -1,0 +1,3229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaSentinel — Embedded Water Quality & Filtration Simulator (SIH)</title>
+  <style>
+/* ==========================================================================
+   AquaSentinel - Industrial SCADA & Embedded Engineering Theme
+   High-Contrast Dark Mode with Cyber-Industrial Accents
+   ========================================================================== */
+
+:root {
+  --bg-primary: #070b14;
+  --bg-secondary: #0d1527;
+  --bg-card: #111d35;
+  --bg-card-hover: #162544;
+  --border-dim: #1e3156;
+  --border-bright: #2d4879;
+  
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --accent-cyan: #00f2fe;
+  --accent-blue: #38bdf8;
+  --accent-green: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #a855f7;
+
+  --glow-cyan: 0 0 15px rgba(0, 242, 254, 0.4);
+  --glow-green: 0 0 15px rgba(16, 185, 129, 0.4);
+  --glow-red: 0 0 18px rgba(239, 68, 68, 0.5);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   TOP BAR & BRANDING
+   ========================================================================== */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #00f2fe, #4facfe);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--glow-cyan);
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, #ffffff, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.system-status-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.badge-safe {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+
+.badge-critical {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.7);
+  color: #f87171;
+  animation: pulseCrit 1.5s infinite;
+}
+
+@keyframes pulseCrit {
+  0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.7); }
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dot-green { background: #10b981; box-shadow: 0 0 8px #10b981; }
+.dot-amber { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+.dot-red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+.mcu-meta-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.meta-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+}
+
+/* ==========================================================================
+   SCENARIO SELECTOR BAR
+   ========================================================================== */
+.scenario-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.scenario-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.region-tag {
+  font-size: 11px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--accent-blue);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.scenario-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.scenario-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scenario-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+}
+
+.scenario-btn.active {
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(79, 172, 254, 0.25));
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+}
+
+.scenario-sub {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.scenario-info-banner {
+  background: rgba(15, 23, 42, 0.7);
+  border-left: 3px solid var(--accent-cyan);
+  padding: 10px 14px;
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.scenario-info-banner strong {
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   GRID LAYOUT: SENSORS & EMBEDDED MCU
+   ========================================================================== */
+.main-grid-2col {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1050px) {
+  .main-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 10px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sensor-sliders-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 600px) {
+  .sensor-sliders-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sensor-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.sensor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.sensor-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sensor-val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.sensor-adc-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 5px;
+  border-radius: 4px;
+  background: #1e293b;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 6px var(--accent-cyan);
+  cursor: pointer;
+}
+
+/* Lab Contaminants Selection */
+.lab-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #e2e8f0;
+  margin: 10px 0 8px;
+}
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.lab-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.lab-item label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.lab-select {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid var(--border-bright);
+  color: var(--text-primary);
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  outline: none;
+}
+
+/* ==========================================================================
+   VIRTUAL ESP32 MCU & SERIAL TERMINAL
+   ========================================================================== */
+.mcu-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.esp32-visual-board {
+  background: #0a0e17;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.esp32-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.esp32-chip-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #38bdf8;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.esp32-core-spec {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.gpio-pinout-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gpio-pin {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.pin-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #374151;
+  transition: all 0.2s ease;
+}
+
+.pin-led.led-on {
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+}
+
+.pin-led.led-relay {
+  background: #4b5563;
+}
+
+.pin-led.led-relay.led-on {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+
+/* Virtual Serial Console */
+.serial-console-card {
+  background: #050811;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  height: 180px;
+  overflow: hidden;
+}
+
+.serial-console-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f172a;
+  padding: 6px 12px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.serial-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.serial-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-console {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.btn-console:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.btn-warn {
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+.serial-output {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #38bdf8;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   P&ID ANIMATED SCHEMATIC
+   ========================================================================== */
+.pid-container-wrapper {
+  background: #080d1a;
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.pid-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Flow animation keyframes */
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.flow-pulse {
+  stroke-dasharray: 8, 4;
+  animation: dashFlow 1.2s linear infinite;
+}
+
+.flow-pulse-recirc {
+  animation: dashFlow 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   TREATMENT STAGES & ALERTS ROW
+   ========================================================================== */
+.treatment-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .treatment-row-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stage-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 10px 14px;
+  transition: all 0.2s ease;
+}
+
+.stage-card.stage-active {
+  border-color: var(--accent-cyan);
+  background: linear-gradient(90deg, rgba(0, 242, 254, 0.08), transparent);
+}
+
+.stage-card.stage-idle {
+  opacity: 0.6;
+}
+
+.stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.stage-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stage-status-pill {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.pill-active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.pill-idle {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+}
+
+.stage-details {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Alerts Box */
+.active-alerts-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.alarm-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.alarm-none {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.alarm-warn {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.alarm-crit {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
+}
+
+.alarm-icon {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.alarm-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.alarm-desc {
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   COMPARISON TABLE & TELEMETRY CHARTS
+   ========================================================================== */
+.bottom-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 980px) {
+  .bottom-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.comp-table th {
+  background: #0f172a;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 10px;
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.comp-table td {
+  padding: 8px;
+  border-bottom: 1px solid #1e293b;
+  font-family: var(--font-mono);
+}
+
+.comp-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.tag-pass { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.tag-permissible { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.tag-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+.destination-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.dest-badge {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+.dest-safe {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+}
+.dest-recirc {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.rating-badge {
+  font-size: 10px;
+  text-align: center;
+  font-weight: 600;
+  padding: 4px;
+  border-radius: 4px;
+}
+.rate-pass { color: var(--accent-green); }
+.rate-fail { color: var(--accent-red); }
+
+/* Canvas Strip Chart */
+.chart-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.chart-filter-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chart-filter-btn.active {
+  background: var(--accent-blue);
+  color: #000000;
+  border-color: var(--accent-blue);
+}
+
+.canvas-chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: #050811;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#telemetryCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ==========================================================================
+   HARDWARE MIGRATION GUIDE & BOM ACCORDION / FOOTER
+   ========================================================================== */
+.hardware-guide-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 16px;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+@media (max-width: 800px) {
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.guide-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 12px;
+}
+
+.guide-block h4 {
+  color: var(--accent-cyan);
+  font-size: 13px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guide-block ul {
+  padding-left: 18px;
+  color: var(--text-secondary);
+}
+
+.guide-block li {
+  margin-bottom: 6px;
+}
+
+.code-snippet-box {
+  background: #050811;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #38bdf8;
+  margin-top: 8px;
+  overflow-x: auto;
+}
+
+</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- TOP BAR & SCADA CONTROLLER STATUS -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="brand-icon">💧</div>
+      <div>
+        <h1 class="brand-title">AquaSentinel</h1>
+        <p class="brand-subtitle">SIH Round 1 Embedded Systems Prototype | Jharkhand Water Quality Initiative</p>
+      </div>
+    </div>
+
+    <div class="system-status-container">
+      <div id="masterStatusBadge" class="status-badge badge-safe">
+        <span class="indicator-dot dot-green"></span> SYSTEM SAFE - IS 10500 COMPLIANT
+      </div>
+      <div class="mcu-meta-pills">
+        <span class="meta-pill" id="fsmStateBadge">STATE_ACQUISITION</span>
+        <span class="meta-pill" id="coreFreqTxt">FreeRTOS 240MHz</span>
+        <span class="meta-pill">Uptime: <span id="mcuUptimeTxt">0.0s</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- JHARKHAND REGIONAL CONTAMINATION PRESETS -->
+  <section class="scenario-panel">
+    <div class="scenario-header-row">
+      <h2 class="panel-title">
+        <span>📍 Field Simulation Scenarios (Jharkhand Mining & Rural Belt)</span>
+      </h2>
+      <span class="region-tag" id="scenarioRegion">Ranchi Outskirts Groundwater</span>
+    </div>
+
+    <div class="scenario-btn-grid">
+      <button class="scenario-btn active" data-scenario="SCENARIO_NORMAL">
+        <span>Scenario 1: Clean Rural Well</span>
+        <span class="scenario-sub">Pristine (IS 10500 Compliant)</span>
+      </button>
+
+      <button class="scenario-btn" data-scenario="SCENARIO_TURBID_RUNOFF">
+        <span>Scenario 2: Monsoon Coal Runoff</span>
+        <span class="scenario-sub">High Turbidity (88 NTU Silt)</span>
+      </button>
+
+      <button class="scenario-btn" data-scenario="SCENARIO_ACID_MINE_DRAINAGE">
+        <span>Scenario 3: Dhanbad Acid Mine Drainage</span>
+        <span class="scenario-sub">Low pH 3.8, Iron 4.8 mg/L, High TDS</span>
+      </button>
+
+      <button class="scenario-btn" data-scenario="SCENARIO_FLUORIDE_BELT">
+        <span>Scenario 4: Palamu Fluorosis Aquifer</span>
+        <span class="scenario-sub">Toxic Fluoride (3.8 mg/L Geogenic)</span>
+      </button>
+
+      <button class="scenario-btn" data-scenario="SCENARIO_CRITICAL_MULTI">
+        <span>Scenario 5: Multi-Contaminant Seepage</span>
+        <span class="scenario-sub">Acidic + Turbid + Fe + As + TDS</span>
+      </button>
+    </div>
+
+    <div class="scenario-info-banner">
+      <strong id="scenarioTitle">Scenario 1: Clean Rural Aquifer (Normal)</strong> — 
+      <span id="scenarioDesc">Pristine groundwater passing all IS 10500:2012 drinking water standards. All treatment stages in standby/polishing mode.</span>
+    </div>
+  </section>
+
+  <!-- 2-COLUMN ROW: SENSOR ACQUISITION & VIRTUAL ESP32 MCU -->
+  <div class="main-grid-2col">
+    
+    <!-- LEFT: SENSOR ACQUISITION & LAB CONTAMINANT PANEL -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>📡 In-Situ Sensor Acquisition (Raw Water Interface)</span>
+        </h3>
+        <span class="meta-pill">12-Bit ADC Emulation (0-3.3V)</span>
+      </div>
+
+      <div class="sensor-sliders-grid">
+        <!-- pH Sensor -->
+        <div class="sensor-item">
+          <div class="sensor-header">
+            <span class="sensor-name">pH Sensor (DFRobot SEN0161)</span>
+            <span class="sensor-val" id="valPh">7.20</span>
+          </div>
+          <div class="sensor-adc-tag" id="adcPhTxt">ADC: 2048 (1.65V)</div>
+          <input type="range" id="sliderPh" min="2.0" max="12.0" step="0.1" value="7.2">
+        </div>
+
+        <!-- TDS Sensor -->
+        <div class="sensor-item">
+          <div class="sensor-header">
+            <span class="sensor-name">TDS Sensor (Analog Meter V1.0)</span>
+            <span class="sensor-val" id="valTds">280 ppm</span>
+          </div>
+          <div class="sensor-adc-tag" id="adcTdsTxt">ADC: 395 (0.32V)</div>
+          <input type="range" id="sliderTds" min="20" max="2000" step="10" value="280">
+        </div>
+
+        <!-- Turbidity Sensor -->
+        <div class="sensor-item">
+          <div class="sensor-header">
+            <span class="sensor-name">Turbidity Sensor (TS-300B Optical)</span>
+            <span class="sensor-val" id="valTurb">0.8 NTU</span>
+          </div>
+          <div class="sensor-adc-tag" id="adcTurbTxt">ADC: 3698 (2.98V)</div>
+          <input type="range" id="sliderTurb" min="0.1" max="120" step="0.5" value="0.8">
+        </div>
+
+        <!-- Water Temperature -->
+        <div class="sensor-item">
+          <div class="sensor-header">
+            <span class="sensor-name">Temperature (DS18B20 1-Wire)</span>
+            <span class="sensor-val" id="valTemp">24.5 °C</span>
+          </div>
+          <div class="sensor-adc-tag">Nernst Temperature Compensation</div>
+          <input type="range" id="sliderTemp" min="5" max="45" step="0.5" value="24.5">
+        </div>
+
+        <!-- Flow Rate -->
+        <div class="sensor-item" style="grid-column: span 2;">
+          <div class="sensor-header">
+            <span class="sensor-name">Flow Rate (YF-S201 Hall-Effect Meter)</span>
+            <span class="sensor-val" id="valFlow">12.0 L/m</span>
+          </div>
+          <div class="sensor-adc-tag">GPIO 16 Hardware Pulse Counter</div>
+          <input type="range" id="sliderFlow" min="0" max="30" step="0.5" value="12.0">
+        </div>
+      </div>
+
+      <!-- Lab-Confirmed Trace Contaminants (Dual-Tier Architecture) -->
+      <h4 class="lab-section-title">🧪 Lab-Confirmed Contaminant Profile (Jharkhand Mining Belt Input)</h4>
+      <div class="lab-grid">
+        <div class="lab-item">
+          <label>Fluoride (F⁻)</label>
+          <select class="lab-select" id="labFluorideSelect">
+            <option value="0.45">0.45 mg/L (Safe < 1.0)</option>
+            <option value="1.20">1.20 mg/L (Borderline)</option>
+            <option value="2.80">2.80 mg/L (Toxic High)</option>
+            <option value="3.80" selected>3.80 mg/L (Palamu Belt)</option>
+          </select>
+        </div>
+
+        <div class="lab-item">
+          <label>Total Iron (Fe²⁺/Fe³⁺)</label>
+          <select class="lab-select" id="labIronSelect">
+            <option value="0.12" selected>0.12 mg/L (Safe < 0.3)</option>
+            <option value="0.65">0.65 mg/L (Elevated)</option>
+            <option value="2.80">2.80 mg/L (Mine Seepage)</option>
+            <option value="4.80">4.80 mg/L (Dhanbad AMD)</option>
+          </select>
+        </div>
+
+        <div class="lab-item">
+          <label>Arsenic (As)</label>
+          <select class="lab-select" id="labArsenicSelect">
+            <option value="0.002" selected>0.002 mg/L (Safe < 0.01)</option>
+            <option value="0.025">0.025 mg/L (Warning > 0.01)</option>
+            <option value="0.045">0.045 mg/L (Critical High)</option>
+            <option value="0.080">0.080 mg/L (Lethal Divert)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: VIRTUAL ESP32 EMBEDDED CONTROLLER & SERIAL MONITOR -->
+    <section class="card mcu-panel">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>⚡ Simulated ESP32 Controller (FreeRTOS Dual-Core)</span>
+        </h3>
+        <span class="meta-pill">UART 115200 Baud</span>
+      </div>
+
+      <!-- Virtual ESP32 Hardware Status -->
+      <div class="esp32-visual-board">
+        <div class="esp32-header">
+          <span class="esp32-chip-badge">ESP32-WROOM-32D (240MHz Xtensa LX6)</span>
+          <span class="esp32-core-spec">Task: SensorTask [100Hz] | ControlTask [20Hz]</span>
+        </div>
+
+        <div class="gpio-pinout-row">
+          <!-- ADC Inputs -->
+          <div class="gpio-pin" title="ADC1_CH6: pH Sensor Probe">
+            <span class="pin-led led-on" id="gpio34Led"></span>
+            <span>GPIO34 (pH)</span>
+          </div>
+          <div class="gpio-pin" title="ADC1_CH7: TDS Sensor Probe">
+            <span class="pin-led led-on" id="gpio35Led"></span>
+            <span>GPIO35 (TDS)</span>
+          </div>
+          <div class="gpio-pin" title="ADC1_CH0: Turbidity Optical Sensor">
+            <span class="pin-led led-on" id="gpio36Led"></span>
+            <span>GPIO36 (TURB)</span>
+          </div>
+
+          <!-- Relay Actuators -->
+          <div class="gpio-pin" title="Relay 1: Solenoid SV1 (Inlet / Strainer)">
+            <span class="pin-led led-relay led-on" id="gpio18Led"></span>
+            <span>GPIO18 (SV1)</span>
+          </div>
+          <div class="gpio-pin" title="Relay 2: Solenoid SV2 (Sand / Anthracite)">
+            <span class="pin-led led-relay" id="gpio19Led"></span>
+            <span>GPIO19 (SV2)</span>
+          </div>
+          <div class="gpio-pin" title="Relay 3: Solenoid SV3 (Targeted Media: Al2O3/Birm/Calcite)">
+            <span class="pin-led led-relay" id="gpio21Led"></span>
+            <span>GPIO21 (SV3)</span>
+          </div>
+          <div class="gpio-pin" title="Relay 4: Solenoid SV4 (GAC Carbon Polisher)">
+            <span class="pin-led led-relay led-on" id="gpio22Led"></span>
+            <span>GPIO22 (SV4)</span>
+          </div>
+          <div class="gpio-pin" title="Relay 5: Solenoid SV5 (Recirculation / Diverter)">
+            <span class="pin-led led-relay" id="gpio23Led"></span>
+            <span>GPIO23 (SV5)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Virtual UART Serial Terminal -->
+      <div class="serial-console-card">
+        <div class="serial-console-toolbar">
+          <span class="serial-title">Virtual UART 115200 Baud Console</span>
+          <div class="serial-actions">
+            <button class="btn-console" id="btnPauseSerial">Pause Stream</button>
+            <button class="btn-console" id="btnCopySerial">Copy Logs</button>
+            <button class="btn-console" id="btnClearSerial">Clear</button>
+          </div>
+        </div>
+        <div class="serial-output" id="serialOutput"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- P&ID DYNAMIC ANIMATED PIPING & INSTRUMENTATION SCHEMATIC -->
+  <section class="pid-container-wrapper">
+    <div class="card-header" style="border: none; margin-bottom: 8px;">
+      <h3 class="card-title">
+        <span>🏭 Piping & Instrumentation Diagram (P&ID) — Multi-Stage Preventative Treatment Train</span>
+      </h3>
+      <span class="region-tag">Dynamic Fluid Flow & Solenoid Actuator Loop</span>
+    </div>
+    <div id="pidContainer"></div>
+  </section>
+
+  <!-- 2-COLUMN ROW: TREATMENT STAGE STATUS & REAL-TIME ALERTS -->
+  <div class="treatment-row-grid">
+    
+    <!-- Active Treatment Stages -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>⚙ Active Treatment Columns & Actuators</span>
+        </h3>
+        <span class="meta-pill">Relay Driver Subsystem</span>
+      </div>
+      <div class="stages-list" id="treatmentStagesList"></div>
+    </section>
+
+    <!-- Real-Time Alerts & IS 10500 Rule Engine -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>🚨 IS 10500:2012 Rule Engine & Safety Alerts</span>
+        </h3>
+        <span class="meta-pill">Anomaly Comparator</span>
+      </div>
+      <div class="active-alerts-box" id="activeAlertsContainer"></div>
+    </section>
+
+  </div>
+
+  <!-- 2-COLUMN ROW: BEFORE VS AFTER TREATMENT TABLE & LIVE OSCILLOSCOPE STRIP CHART -->
+  <div class="bottom-grid-2col">
+
+    <!-- Before vs After Verification Table -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>🔬 Water Quality Verification: Raw vs Treated Effluent</span>
+        </h3>
+        <span class="meta-pill">IS 10500 Compliance Loop</span>
+      </div>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Raw Water</th>
+            <th>Treated Effluent</th>
+            <th>Efficiency</th>
+            <th>IS 10500 Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>pH Value</td>
+            <td id="rawPhComp">7.20</td>
+            <td id="treatedPhComp">7.25</td>
+            <td id="phEffComp">Buffered</td>
+            <td><span class="status-tag tag-pass" id="phStatusComp">PASS</span></td>
+          </tr>
+          <tr>
+            <td>TDS (ppm)</td>
+            <td id="rawTdsComp">280 ppm</td>
+            <td id="treatedTdsComp">246 ppm</td>
+            <td id="tdsEffComp">-12%</td>
+            <td><span class="status-tag tag-pass" id="tdsStatusComp">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Turbidity (NTU)</td>
+            <td id="rawTurbComp">0.8 NTU</td>
+            <td id="treatedTurbComp">0.4 NTU</td>
+            <td id="turbEffComp">-50%</td>
+            <td><span class="status-tag tag-pass" id="turbStatusComp">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Fluoride (mg/L)</td>
+            <td id="rawFluorideComp">0.45 mg/L</td>
+            <td id="treatedFluorideComp">0.38 mg/L</td>
+            <td id="fluorideEffComp">-15%</td>
+            <td><span class="status-tag tag-pass" id="fluorideStatusComp">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Iron (mg/L)</td>
+            <td id="rawIronComp">0.12 mg/L</td>
+            <td id="treatedIronComp">0.08 mg/L</td>
+            <td id="ironEffComp">-33%</td>
+            <td><span class="status-tag tag-pass" id="ironStatusComp">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="destination-bar">
+        <div id="diverterStatusBadge" class="dest-badge dest-safe">
+          AUTHORIZED: DISCHARGED TO SAFE STORAGE TANK
+        </div>
+        <div id="complianceRatingBadge" class="rating-badge rate-pass">
+          IS 10500 COMPLIANT (DRINKABLE)
+        </div>
+      </div>
+    </section>
+
+    <!-- Canvas Strip-Chart Oscilloscope -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>📈 Multi-Channel Real-Time Telemetry Oscilloscope</span>
+        </h3>
+        <div class="chart-controls">
+          <button class="chart-filter-btn active" data-channel="ALL">ALL</button>
+          <button class="chart-filter-btn" data-channel="PH">pH</button>
+          <button class="chart-filter-btn" data-channel="TDS">TDS</button>
+          <button class="chart-filter-btn" data-channel="TURB">Turb</button>
+        </div>
+      </div>
+      <div class="canvas-chart-wrapper">
+        <canvas id="telemetryCanvas"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- EMBEDDED HARDWARE MIGRATION GUIDE & BOM (FOR SIH ROUND 2 PRESENTATION) -->
+  <section class="hardware-guide-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <span>🛠 Hardware Migration Roadmap: Transitioning from Simulator to Physical ESP32 (SIH Round 2)</span>
+      </h3>
+      <span class="region-tag">EE & Embedded Engineering Guide</span>
+    </div>
+
+    <div class="guide-grid">
+      <div class="guide-block">
+        <h4>1. Bill of Materials (BOM) & Sensor Selection</h4>
+        <ul>
+          <li><strong>Microcontroller:</strong> ESP32 DevKit V1 (30-pin, dual-core 240MHz, built-in WiFi/BLE).</li>
+          <li><strong>pH Probe:</strong> DFRobot Gravity Analog pH Sensor (SEN0161) with BNC connector probe.</li>
+          <li><strong>TDS Meter:</strong> DFRobot Gravity Analog TDS Sensor (0-1000 ppm, 3.3V/5V compatible).</li>
+          <li><strong>Turbidity Sensor:</strong> DFRobot Gravity TS-300B Optical Turbidity Sensor (0-3000 NTU).</li>
+          <li><strong>Temperature:</strong> DS18B20 waterproof digital probe (Dallas 1-Wire protocol with 4.7kΩ pull-up).</li>
+          <li><strong>Actuators:</strong> 5-Channel 5V Optocoupled Relay Module controlling 12V DC Normally-Closed Solenoid Valves.</li>
+          <li><strong>ADC Note:</strong> For higher 16-bit analog resolution, an external I2C <strong>ADS1115</strong> ADC module can replace internal ESP32 ADC1 to eliminate non-linear ADC attenuation.</li>
+        </ul>
+      </div>
+
+      <div class="guide-block">
+        <h4>2. Circuit & Power Architecture</h4>
+        <ul>
+          <li><strong>Power Isolation:</strong> Dual power supply rail — 5V/2A regulated logic supply for ESP32/sensors, and 12V/3A high-current supply for solenoid valves.</li>
+          <li><strong>Flyback Protection:</strong> 1N4007 flyback diodes wired across each 12V solenoid coil to suppress inductive voltage spikes during relay cutoff.</li>
+          <li><strong>Relay Optocoupler Isolation:</strong> JD-VCC jumper separated on relay board to prevent relay coil transients from resetting the ESP32.</li>
+          <li><strong>Calibration Procedure:</strong> Standard 2-point buffer calibration for pH (pH 4.01 and 7.00 buffers) stored in ESP32 Non-Volatile Storage (NVS Flash).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCRIPTS -->
+  
+  
+  
+  
+  
+
+<script>
+/**
+ * AquaSentinel - Embedded Microcontroller Firmware Emulation (ESP32 DevKit V1)
+ *
+ * Emulates the firmware that would run on an ESP32 micro-controller under FreeRTOS.
+ * Provides:
+ *  - 12-bit ADC sampling (0 - 4095 counts, 0.0 - 3.3V reference)
+ *  - Moving-Average Digital Filter (window N=8) for ADC noise rejection
+ *  - Temperature compensation (Nernst equation for pH, 2%/C for TDS)
+ *  - IS 10500:2012 Drinking Water Specification comparator
+ *  - Finite State Machine (FSM): BOOT -> ACQUISITION -> EVALUATION -> ACTUATION -> VERIFY -> ALARM
+ *  - Relay output control (GPIO 18, 19, 21, 22, 23)
+ *  - Virtual UART Serial 115200 baud telemetry & JSON MQTT packet generator
+ */
+
+class ESP32FirmwareCore {
+  constructor() {
+    // GPIO Pin Mapping (matching physical ESP32 DevKit V1)
+    this.PINS = {
+      // ADC1 Analog Inputs (12-bit, attenuated 11dB for 0-3.3V)
+      ADC_PH: 34,        // ADC1_CH6: Analog pH probe (DFRobot SEN0161)
+      ADC_TDS: 35,       // ADC1_CH7: Analog TDS sensor
+      ADC_TURBIDITY: 36, // ADC1_CH0 / SENSOR_VP: Turbidity optical sensor
+      ONE_WIRE_TEMP: 4,  // DS18B20 1-Wire temperature sensor
+      FLOW_PULSE: 16,    // Hall-effect pulse flow meter (YF-S201)
+
+      // Actuator Digital Outputs (Active HIGH via Optocoupled 5V Relay Board)
+      RELAY_SV1_INLET: 18,     // Solenoid 1: Raw Water Inlet & Coarse Strainer
+      RELAY_SV2_SEDIMENT: 19,  // Solenoid 2: Dual-Media Sand/Anthracite Bed
+      RELAY_SV3_TARGET: 21,    // Solenoid 3: Targeted Media (Calcite/Alumina/Birm)
+      RELAY_SV4_CARBON: 22,    // Solenoid 4: Granular Activated Carbon (GAC)
+      RELAY_SV5_DIVERT: 23,    // Solenoid 5: Recirculation / Reject Diverter
+      STATUS_LED_R: 25,        // RGB Alert LED - Red
+      STATUS_LED_G: 26,        // RGB Alert LED - Green
+      STATUS_LED_B: 27         // RGB Alert LED - Blue
+    };
+
+    // Bureau of Indian Standards IS 10500:2012 Drinking Water Specification
+    this.STANDARDS = {
+      PH: {
+        acceptable_min: 6.5,
+        acceptable_max: 8.5,
+        permissible_min: 6.5, // No relaxation in IS 10500:2012
+        permissible_max: 8.5
+      },
+      TDS: {
+        acceptable_max: 500,    // mg/L (ppm)
+        permissible_max: 2000   // Permissible in absence of alternate source
+      },
+      TURBIDITY: {
+        acceptable_max: 1.0,    // NTU
+        permissible_max: 5.0    // NTU
+      },
+      FLUORIDE: {
+        acceptable_max: 1.0,    // mg/L
+        permissible_max: 1.5    // mg/L (dental/skeletal fluorosis threshold)
+      },
+      IRON: {
+        acceptable_max: 0.3,    // mg/L
+        permissible_max: 1.0    // mg/L
+      },
+      ARSENIC: {
+        acceptable_max: 0.01,   // mg/L (strictly restricted)
+        permissible_max: 0.05   // mg/L
+      }
+    };
+
+    // Digital Filter Buffer (Moving Average window size N=8)
+    this.FILTER_WINDOW = 8;
+    this.filterBuffers = {
+      ph_adc: [],
+      tds_adc: [],
+      turbidity_adc: [],
+      temp_raw: []
+    };
+
+    // FSM States
+    this.FSM_STATES = {
+      BOOT: 'STATE_BOOT',
+      ACQUISITION: 'STATE_ACQUISITION',
+      EVALUATION: 'STATE_EVALUATION',
+      STAGE_CONTROL: 'STATE_STAGE_CONTROL',
+      VERIFICATION: 'STATE_VERIFICATION',
+      ALARM_HOLD: 'STATE_ALARM_HOLD'
+    };
+    this.currentState = this.FSM_STATES.BOOT;
+    this.systemHealth = 'SAFE'; // 'SAFE', 'WARNING', 'CRITICAL'
+
+    // Virtual GPIO Output State Register
+    this.gpioOutputs = {
+      [this.PINS.RELAY_SV1_INLET]: 0,
+      [this.PINS.RELAY_SV2_SEDIMENT]: 0,
+      [this.PINS.RELAY_SV3_TARGET]: 0,
+      [this.PINS.RELAY_SV4_CARBON]: 0,
+      [this.PINS.RELAY_SV5_DIVERT]: 0,
+      [this.PINS.STATUS_LED_R]: 0,
+      [this.PINS.STATUS_LED_G]: 1,
+      [this.PINS.STATUS_LED_B]: 0
+    };
+
+    // Active treatment strategy recommendation
+    this.activeTreatmentPlan = [];
+    this.activeAlarms = [];
+
+    // Telemetry log buffer for Virtual UART (115200 baud)
+    this.serialBuffer = [];
+    this.maxSerialLines = 150;
+    this.bootTimestamp = Date.now();
+    this.cycleCount = 0;
+
+    // Simulated calibration constants
+    this.calibrations = {
+      ph_offset: 0.00,        // mV calibration offset at pH 7.00
+      ph_slope: -59.16,       // Nernst slope at 25°C (mV/pH unit)
+      tds_factor: 0.5,        // Electrical conductivity to TDS factor
+      turbidity_k: -1120.4,   // Polynomial coefficient for optical turbidity
+      turbidity_b: 5742.3
+    };
+
+    this.logSerial("SYSTEM", "ESP-IDF v4.4.2 Booting AquaSentinel Core on ESP32-WROOM-32...");
+    this.logSerial("SYSTEM", "FreeRTOS Scheduler Initialized. 2 Cores running @ 240MHz.");
+    this.logSerial("SYSTEM", "ADC1 12-bit calibration initialized with Vref=1100mV, 11dB attenuation (0-3.3V).");
+    this.logSerial("SYSTEM", "Loaded IS 10500:2012 Drinking Water Specification standards from NVS Flash.");
+  }
+
+  /**
+   * Log a formatted line to the Virtual UART Serial Terminal
+   */
+  logSerial(tag, message) {
+    const uptimeSec = ((Date.now() - this.bootTimestamp) / 1000).toFixed(2);
+    const line = `[+${uptimeSec.padStart(7, ' ')}s] [${tag.padEnd(8, ' ')}] ${message}`;
+    this.serialBuffer.push(line);
+    if (this.serialBuffer.length > this.maxSerialLines) {
+      this.serialBuffer.shift();
+    }
+  }
+
+  /**
+   * Moving Average Digital Filter
+   * Eliminates ADC random Gaussian noise and power-line hum (50Hz)
+   */
+  applyMovingAverage(buffer, sample) {
+    buffer.push(sample);
+    if (buffer.length > this.FILTER_WINDOW) {
+      buffer.shift();
+    }
+    const sum = buffer.reduce((acc, v) => acc + v, 0);
+    return sum / buffer.length;
+  }
+
+  /**
+   * Convert physical sensor inputs to simulated 12-bit ADC counts with ADC noise
+   */
+  simulateADCReadings(rawPhysics) {
+    // 1. pH probe: 0 to 14 pH maps to approximately 0 to 3.0V (centered around 1.65V)
+    const phVolts = 1.65 - ((rawPhysics.ph - 7.0) * 0.133);
+    const phClampedVolts = Math.max(0.1, Math.min(3.2, phVolts));
+    const phAdcNoise = (Math.random() - 0.5) * 12; // +/- 6 ADC counts noise
+    const rawPhAdc = Math.round((phClampedVolts / 3.3) * 4095 + phAdcNoise);
+
+    // 2. TDS Sensor: 0 to 2000 ppm maps to 0 to 2.3V
+    const tdsVolts = (rawPhysics.tds / 2000.0) * 2.3;
+    const tdsClampedVolts = Math.max(0.05, Math.min(3.1, tdsVolts));
+    const tdsAdcNoise = (Math.random() - 0.5) * 14;
+    const rawTdsAdc = Math.round((tdsClampedVolts / 3.3) * 4095 + tdsAdcNoise);
+
+    // 3. Turbidity Sensor: Inverse optical transmittance. Clean water = ~3.0V (low NTU), Dirty water = ~0.5V (high NTU)
+    const turbVolts = Math.max(0.5, 3.0 - (rawPhysics.turbidity / 120.0) * 2.4);
+    const turbNoise = (Math.random() - 0.5) * 16;
+    const rawTurbAdc = Math.round((turbVolts / 3.3) * 4095 + turbNoise);
+
+    // Filter the raw ADC counts
+    const filteredPhAdc = this.applyMovingAverage(this.filterBuffers.ph_adc, rawPhAdc);
+    const filteredTdsAdc = this.applyMovingAverage(this.filterBuffers.tds_adc, rawTdsAdc);
+    const filteredTurbAdc = this.applyMovingAverage(this.filterBuffers.turbidity_adc, rawTurbAdc);
+
+    return {
+      raw_adc: {
+        ph: rawPhAdc,
+        tds: rawTdsAdc,
+        turbidity: rawTurbAdc
+      },
+      filtered_adc: {
+        ph: filteredPhAdc,
+        tds: filteredTdsAdc,
+        turbidity: filteredTurbAdc
+      },
+      voltages: {
+        ph: (filteredPhAdc / 4095.0) * 3.3,
+        tds: (filteredTdsAdc / 4095.0) * 3.3,
+        turbidity: (filteredTurbAdc / 4095.0) * 3.3
+      }
+    };
+  }
+
+  /**
+   * Convert Filtered ADC Voltages back to calibrated engineering units
+   * Includes temperature compensation (DS18B20 feedback)
+   */
+  convertAdcToEngineeringUnits(voltages, tempC) {
+    // 1. pH with Nernst Temperature Compensation
+    const tempKelvin = tempC + 273.15;
+    const nernstSlope = (0.0001984 * tempKelvin); // V/pH
+    const phCalculated = 7.0 - (voltages.ph - 1.65) / (nernstSlope * 4.3);
+    const phClamped = Number(Math.max(0.0, Math.min(14.0, phCalculated)).toFixed(2));
+
+    // 2. TDS with Temperature Compensation coefficient (2.0% / °C reference 25°C)
+    const tempCoeff = 1.0 + 0.02 * (tempC - 25.0);
+    const compensatedVolts = voltages.tds / tempCoeff;
+    const v = compensatedVolts;
+    const tdsCalc = (133.42 * Math.pow(v, 3) - 255.86 * Math.pow(v, 2) + 857.39 * v) * 0.72;
+    const tdsClamped = Math.max(10, Math.round(tdsCalc));
+
+    // 3. Turbidity conversion (optical curve)
+    const vTurb = Math.min(3.0, Math.max(0.5, voltages.turbidity));
+    let turbCalc = (3.0 - vTurb) * 50.0;
+    if (vTurb < 1.2) turbCalc += (1.2 - vTurb) * 80.0;
+    const turbClamped = Number(Math.max(0.1, turbCalc).toFixed(1));
+
+    return {
+      ph: phClamped,
+      tds: tdsClamped,
+      turbidity: turbClamped,
+      temperature: Number(tempC.toFixed(1))
+    };
+  }
+
+  /**
+   * FreeRTOS Task: Evaluate water quality against IS 10500:2012
+   */
+  evaluateWaterQuality(sensorData, labProfile) {
+    const alarms = [];
+    let healthScore = 'SAFE';
+
+    // 1. pH Evaluation
+    if (sensorData.ph < this.STANDARDS.PH.acceptable_min) {
+      const isSevere = sensorData.ph < 5.5;
+      alarms.push({
+        parameter: 'pH',
+        severity: isSevere ? 'CRITICAL' : 'WARNING',
+        message: `Acidic Water (pH ${sensorData.ph} < ${this.STANDARDS.PH.acceptable_min} IS 10500 limit). Acid mine drainage or industrial runoff risk.`,
+        code: 'ERR_PH_ACIDIC'
+      });
+      if (isSevere) healthScore = 'CRITICAL';
+      else if (healthScore !== 'CRITICAL') healthScore = 'WARNING';
+    } else if (sensorData.ph > this.STANDARDS.PH.acceptable_max) {
+      const isSevere = sensorData.ph > 9.5;
+      alarms.push({
+        parameter: 'pH',
+        severity: isSevere ? 'CRITICAL' : 'WARNING',
+        message: `Alkaline Water (pH ${sensorData.ph} > ${this.STANDARDS.PH.acceptable_max} IS 10500 limit). Carbonate/mineral leaching risk.`,
+        code: 'ERR_PH_ALKALINE'
+      });
+      if (isSevere) healthScore = 'CRITICAL';
+      else if (healthScore !== 'CRITICAL') healthScore = 'WARNING';
+    }
+
+    // 2. Turbidity Evaluation
+    if (sensorData.turbidity > this.STANDARDS.TURBIDITY.permissible_max) {
+      alarms.push({
+        parameter: 'Turbidity',
+        severity: 'CRITICAL',
+        message: `Severe Turbidity (${sensorData.turbidity} NTU > ${this.STANDARDS.TURBIDITY.permissible_max} NTU permissible). Silt/colloidal mining suspended solids.`,
+        code: 'ERR_TURB_HIGH'
+      });
+      healthScore = 'CRITICAL';
+    } else if (sensorData.turbidity > this.STANDARDS.TURBIDITY.acceptable_max) {
+      alarms.push({
+        parameter: 'Turbidity',
+        severity: 'WARNING',
+        message: `Elevated Turbidity (${sensorData.turbidity} NTU > ${this.STANDARDS.TURBIDITY.acceptable_max} NTU acceptable). Filtration required.`,
+        code: 'WARN_TURB_ELEVATED'
+      });
+      if (healthScore !== 'CRITICAL') healthScore = 'WARNING';
+    }
+
+    // 3. TDS Evaluation
+    if (sensorData.tds > this.STANDARDS.TDS.permissible_max) {
+      alarms.push({
+        parameter: 'TDS',
+        severity: 'CRITICAL',
+        message: `High Total Dissolved Solids (${sensorData.tds} ppm > ${this.STANDARDS.TDS.permissible_max} ppm permissible limit). Mineralization/salinity hazard.`,
+        code: 'ERR_TDS_CRITICAL'
+      });
+      healthScore = 'CRITICAL';
+    } else if (sensorData.tds > this.STANDARDS.TDS.acceptable_max) {
+      alarms.push({
+        parameter: 'TDS',
+        severity: 'WARNING',
+        message: `TDS exceeds desirable limit (${sensorData.tds} ppm > ${this.STANDARDS.TDS.acceptable_max} ppm desirable). Permissible only in absence of alternate source.`,
+        code: 'WARN_TDS_MODERATE'
+      });
+      if (healthScore !== 'CRITICAL') healthScore = 'WARNING';
+    }
+
+    // 4. Lab-Confirmed Contaminant Profile (Fluoride, Iron, Arsenic)
+    if (labProfile) {
+      if (labProfile.fluoride > this.STANDARDS.FLUORIDE.permissible_max) {
+        alarms.push({
+          parameter: 'Fluoride (Lab)',
+          severity: 'CRITICAL',
+          message: `Elevated Fluoride (${labProfile.fluoride} mg/L > ${this.STANDARDS.FLUORIDE.permissible_max} mg/L). Chronic Dental/Skeletal Fluorosis risk in Jharkhand aquifer!`,
+          code: 'ERR_FLUORIDE_TOXIC'
+        });
+        healthScore = 'CRITICAL';
+      } else if (labProfile.fluoride > this.STANDARDS.FLUORIDE.acceptable_max) {
+        alarms.push({
+          parameter: 'Fluoride (Lab)',
+          severity: 'WARNING',
+          message: `Fluoride (${labProfile.fluoride} mg/L) exceeds desirable limit (1.0 mg/L).`,
+          code: 'WARN_FLUORIDE_ELEVATED'
+        });
+        if (healthScore !== 'CRITICAL') healthScore = 'WARNING';
+      }
+
+      if (labProfile.iron > this.STANDARDS.IRON.permissible_max) {
+        alarms.push({
+          parameter: 'Iron (Lab)',
+          severity: 'CRITICAL',
+          message: `Heavy Iron Contamination (${labProfile.iron} mg/L > ${this.STANDARDS.IRON.permissible_max} mg/L). Mining leaching & pipe scaling.`,
+          code: 'ERR_IRON_HIGH'
+        });
+        healthScore = 'CRITICAL';
+      }
+
+      if (labProfile.arsenic > this.STANDARDS.ARSENIC.permissible_max) {
+        alarms.push({
+          parameter: 'Arsenic (Lab)',
+          severity: 'CRITICAL',
+          message: `CRITICAL TOXICITY: Arsenic (${labProfile.arsenic} mg/L > ${this.STANDARDS.ARSENIC.permissible_max} mg/L). Carcinogenic risk! Immediate filtration diverter trip.`,
+          code: 'ERR_ARSENIC_LETHAL'
+        });
+        healthScore = 'CRITICAL';
+      }
+    }
+
+    this.activeAlarms = alarms;
+    this.systemHealth = healthScore;
+    return { healthScore, alarms };
+  }
+
+  /**
+   * FreeRTOS Actuation Task: Control Solenoid Valves & Filtration Stages
+   */
+  dispatchTreatmentControl(sensorData, labProfile) {
+    const activeStages = [];
+    const relays = {
+      [this.PINS.RELAY_SV1_INLET]: 1,     // Always open to allow raw feed
+      [this.PINS.RELAY_SV2_SEDIMENT]: 0,  // Dual-media sediment
+      [this.PINS.RELAY_SV3_TARGET]: 0,    // Specialized chemical media
+      [this.PINS.RELAY_SV4_CARBON]: 0,    // GAC / Polishing
+      [this.PINS.RELAY_SV5_DIVERT]: 0     // Recirculation diverter
+    };
+
+    activeStages.push({
+      stage: 1,
+      name: 'Stage 1: 50-Micron Coarse Strainer',
+      relayPin: this.PINS.RELAY_SV1_INLET,
+      active: true,
+      reason: 'Standard raw water pre-filtration for physical debris and grit.'
+    });
+
+    // Determine Stage 2: Sand/Anthracite Dual-Media Filter
+    // Activated if Turbidity > 1.0 NTU or general particulate load
+    if (sensorData.turbidity > 1.0) {
+      relays[this.PINS.RELAY_SV2_SEDIMENT] = 1;
+      activeStages.push({
+        stage: 2,
+        name: 'Stage 2: Dual-Media Sand & Anthracite Bed',
+        relayPin: this.PINS.RELAY_SV2_SEDIMENT,
+        active: true,
+        reason: `Turbidity (${sensorData.turbidity} NTU) > 1.0 NTU limit. Sand/anthracite bed engaged for colloidal silt removal.`
+      });
+    }
+
+    // Determine Stage 3: Targeted Chemical Media
+    // Activated if pH abnormal OR heavy mineral profile detected (Fluoride / Iron / Arsenic)
+    const needPhCorrection = sensorData.ph < 6.5 || sensorData.ph > 8.5;
+    const needFluorideTreatment = labProfile && labProfile.fluoride > 1.0;
+    const needIronOxidation = labProfile && labProfile.iron > 0.3;
+    const needArsenicRemoval = labProfile && labProfile.arsenic > 0.01;
+
+    if (needPhCorrection || needFluorideTreatment || needIronOxidation || needArsenicRemoval) {
+      relays[this.PINS.RELAY_SV3_TARGET] = 1;
+      let targetDesc = [];
+      if (sensorData.ph < 6.5) targetDesc.push('Calcite/Magnesite Neutralizer (Acid Correction)');
+      if (sensorData.ph > 8.5) targetDesc.push('Citric/Mild Acid Neutralizer (Alkalinity Buffer)');
+      if (needFluorideTreatment) targetDesc.push('Activated Alumina Bed (Fluoride Adsorption)');
+      if (needIronOxidation) targetDesc.push('Birm/Manganese Greensand Media (Catalytic Iron Oxidation)');
+      if (needArsenicRemoval) targetDesc.push('Iron-Oxide Coated Sand / Zero-Valent Iron Adsorption');
+
+      activeStages.push({
+        stage: 3,
+        name: 'Stage 3: Targeted Specialized Treatment Media',
+        relayPin: this.PINS.RELAY_SV3_TARGET,
+        active: true,
+        subsystems: targetDesc,
+        reason: targetDesc.join(' + ')
+      });
+    }
+
+    // Stage 4: Granular Activated Carbon (GAC) + Ultrafiltration Polisher
+    // Activated if TDS is elevated, organic compounds/taste/odor exist, or standard final polish
+    relays[this.PINS.RELAY_SV4_CARBON] = 1;
+    activeStages.push({
+      stage: 4,
+      name: 'Stage 4: Granular Activated Carbon (GAC) & Micro-Polishing',
+      relayPin: this.PINS.RELAY_SV4_CARBON,
+      active: true,
+      reason: 'Adsorption of residual heavy-metal traces, organic residues, color, and odor polishing.'
+    });
+
+    // Stage 5: Diverter Valve (SV5)
+    // If water quality is unrecoverably CRITICAL (e.g. Arsenic extreme or system over-capacity),
+    // divert to recirculation loop or hold for secondary batch pass
+    if (this.systemHealth === 'CRITICAL' && labProfile && labProfile.arsenic > 0.05) {
+      relays[this.PINS.RELAY_SV5_DIVERT] = 1; // Energize diverter to recycle
+      activeStages.push({
+        stage: 5,
+        name: 'Safety Interlock: Recirculation Diverter Valve',
+        relayPin: this.PINS.RELAY_SV5_DIVERT,
+        active: true,
+        reason: 'Effluent fails severe toxicity threshold. Diverted back to treatment buffer for secondary pass.'
+      });
+    }
+
+    // Update internal GPIO registers
+    this.gpioOutputs = { ...this.gpioOutputs, ...relays };
+
+    // Update RGB LED indicators
+    if (this.systemHealth === 'SAFE') {
+      this.gpioOutputs[this.PINS.STATUS_LED_R] = 0;
+      this.gpioOutputs[this.PINS.STATUS_LED_G] = 1;
+      this.gpioOutputs[this.PINS.STATUS_LED_B] = 0;
+    } else if (this.systemHealth === 'WARNING') {
+      this.gpioOutputs[this.PINS.STATUS_LED_R] = 1;
+      this.gpioOutputs[this.PINS.STATUS_LED_G] = 1;
+      this.gpioOutputs[this.PINS.STATUS_LED_B] = 0;
+    } else {
+      this.gpioOutputs[this.PINS.STATUS_LED_R] = 1;
+      this.gpioOutputs[this.PINS.STATUS_LED_G] = 0;
+      this.gpioOutputs[this.PINS.STATUS_LED_B] = 0;
+    }
+
+    this.activeTreatmentPlan = activeStages;
+    return { relays, activeStages };
+  }
+
+  /**
+   * Main FreeRTOS Loop Tick (Simulates execution cycle every 250ms)
+   */
+  executeCycle(rawSensorInputs, labProfile) {
+    this.cycleCount++;
+
+    // Step 1: ADC Oversampling & Acquisition
+    this.currentState = this.FSM_STATES.ACQUISITION;
+    const adcData = this.simulateADCReadings(rawSensorInputs);
+
+    // Step 2: Calibrate to Engineering Units
+    const calibrated = this.convertAdcToEngineeringUnits(adcData.voltages, rawSensorInputs.temperature);
+
+    // Step 3: Threshold Evaluation
+    this.currentState = this.FSM_STATES.EVALUATION;
+    const evalResult = this.evaluateWaterQuality(calibrated, labProfile);
+
+    // Step 4: Actuator & Relay Dispatch
+    this.currentState = this.FSM_STATES.STAGE_CONTROL;
+    const actuation = this.dispatchTreatmentControl(calibrated, labProfile);
+
+    // Periodically log telemetry via UART
+    if (this.cycleCount % 4 === 0) { // Every ~1 sec
+      this.logTelemetryPacket(calibrated, adcData, evalResult);
+    }
+
+    return {
+      state: this.currentState,
+      health: this.systemHealth,
+      adc: adcData,
+      calibrated: calibrated,
+      alarms: evalResult.alarms,
+      relays: actuation.relays,
+      stages: actuation.activeStages,
+      gpio: this.gpioOutputs,
+      uptime: ((Date.now() - this.bootTimestamp) / 1000).toFixed(1)
+    };
+  }
+
+  /**
+   * Output formatted Serial Monitor Telemetry packet
+   */
+  logTelemetryPacket(sensor, adc, evaluation) {
+    const activeRelayNames = Object.entries(this.gpioOutputs)
+      .filter(([pin, val]) => val === 1 && [18, 19, 21, 22, 23].includes(Number(pin)))
+      .map(([pin]) => `GPIO${pin}`)
+      .join(',');
+
+    this.logSerial("ADC_SMPL", `pH_ADC:${adc.raw_adc.ph} (${adc.voltages.ph.toFixed(2)}V) | TDS_ADC:${adc.raw_adc.tds} | TURB_ADC:${adc.raw_adc.turbidity}`);
+    this.logSerial("METRICS", `pH:${sensor.ph} | TDS:${sensor.tds}ppm | Turb:${sensor.turbidity}NTU | Temp:${sensor.temperature}°C -> [${evaluation.healthScore}]`);
+    this.logSerial("RELAY_IO", `Active Relays: [${activeRelayNames || 'NONE'}] | Health: ${this.systemHealth}`);
+
+    if (evaluation.alarms.length > 0) {
+      const topAlarm = evaluation.alarms[0];
+      this.logSerial("ALARM_EVT", `[${topAlarm.severity}] ${topAlarm.code}: ${topAlarm.message.slice(0, 60)}...`);
+    }
+
+    // Simulate MQTT JSON Payload for Cloud Telemetry
+    const mqttPayload = {
+      device_id: "AQUA-SENTINEL-JH01",
+      ts: Math.floor(Date.now() / 1000),
+      status: this.systemHealth,
+      ph: sensor.ph,
+      tds: sensor.tds,
+      turb: sensor.turbidity,
+      relays: activeRelayNames
+    };
+    this.logSerial("MQTT_PUB", `Topic: 'aquasentinel/node_01/telemetry' -> ${JSON.stringify(mqttPayload)}`);
+  }
+}
+
+// Export for browser
+if (typeof window !== 'undefined') {
+  window.ESP32FirmwareCore = ESP32FirmwareCore;
+}
+
+/**
+ * AquaSentinel - Water Treatment & Contaminant Physics Simulation Model
+ *
+ * Implements empirical mass-balance and reaction kinetics for multi-stage filtration:
+ *  1. Stage 1: 50-Micron Pre-Strainer (Coarse suspended solids)
+ *  2. Stage 2: Dual-Media Sand & Anthracite Filter (Fine turbidity & colloidal silt)
+ *  3. Stage 3: Targeted Specialized Media:
+ *      - Calcite / Corosex neutralization bed (Acid mine drainage pH buffering)
+ *      - Activated Alumina bed (Fluoride ion-exchange adsorption)
+ *      - Birm / Manganese Greensand (Catalytic Iron oxidation & precipitation)
+ *      - Iron-oxide coated sand (Arsenic chemisorption)
+ *  4. Stage 4: Granular Activated Carbon (GAC) & Ultrafiltration Polishing
+ *
+ * Computes Treated Water properties, removal efficiencies, and IS 10500:2012 compliance.
+ */
+
+class WaterPhysicsSimulation {
+  constructor() {
+    // Standard IS 10500:2012 Reference Limits for Compliance
+    this.IS10500_LIMITS = {
+      ph: { min: 6.5, max: 8.5, name: "pH value" },
+      tds: { acceptable: 500, permissible: 2000, unit: "mg/L", name: "Total Dissolved Solids" },
+      turbidity: { acceptable: 1.0, permissible: 5.0, unit: "NTU", name: "Turbidity" },
+      fluoride: { acceptable: 1.0, permissible: 1.5, unit: "mg/L", name: "Fluoride" },
+      iron: { acceptable: 0.3, permissible: 1.0, unit: "mg/L", name: "Total Iron" },
+      arsenic: { acceptable: 0.01, permissible: 0.05, unit: "mg/L", name: "Arsenic" }
+    };
+  }
+
+  /**
+   * Simulate multi-stage physical and chemical treatment
+   * @param {Object} rawInput - { ph, tds, turbidity, temperature, flow }
+   * @param {Object} labProfile - { fluoride, iron, arsenic, sourceName }
+   * @param {Object} relays - GPIO relay states from embedded controller
+   */
+  processFiltration(rawInput, labProfile, relays) {
+    // Clone starting values
+    let ph = rawInput.ph;
+    let tds = rawInput.tds;
+    let turbidity = rawInput.turbidity;
+    let fluoride = (labProfile && labProfile.fluoride) ? labProfile.fluoride : 0.4;
+    let iron = (labProfile && labProfile.iron) ? labProfile.iron : 0.1;
+    let arsenic = (labProfile && labProfile.arsenic) ? labProfile.arsenic : 0.002;
+
+    const stageResults = [];
+
+    // -------------------------------------------------------------
+    // STAGE 1: Coarse Mesh Strainer (50 micron)
+    // Always passes if inlet valve SV1 (GPIO 18) is open
+    // -------------------------------------------------------------
+    if (relays[18]) {
+      // Removes larger particulate suspended grit: ~30% - 40% of turbidity if high
+      const turbReductionRatio = turbidity > 15.0 ? 0.35 : 0.15;
+      const initialTurb = turbidity;
+      turbidity = Math.max(0.5, turbidity * (1.0 - turbReductionRatio));
+
+      stageResults.push({
+        stage: 1,
+        name: "Stage 1: 50-Micron Coarse Strainer",
+        status: "ACTIVE",
+        turbidity_out: turbidity,
+        effect: `Removed coarse suspended grit & debris (-${(turbReductionRatio * 100).toFixed(0)}% turbidity: ${initialTurb.toFixed(1)} -> ${turbidity.toFixed(1)} NTU)`
+      });
+    } else {
+      stageResults.push({ stage: 1, name: "Stage 1: Pre-Strainer", status: "BYPASSED" });
+    }
+
+    // -------------------------------------------------------------
+    // STAGE 2: Dual-Media Sand & Anthracite Filter
+    // Activated by SV2 (GPIO 19)
+    // -------------------------------------------------------------
+    if (relays[19]) {
+      // Dual-media deep-bed filtration captures 85% - 93% of colloidal particles
+      const initialTurb = turbidity;
+      turbidity = Math.max(0.2, turbidity * 0.12); // ~88% reduction
+
+      stageResults.push({
+        stage: 2,
+        name: "Stage 2: Dual-Media Sand & Anthracite Bed",
+        status: "ACTIVE",
+        turbidity_out: turbidity,
+        effect: `Deep-bed filtration trapped colloidal silt & suspended matter (${initialTurb.toFixed(1)} -> ${turbidity.toFixed(1)} NTU)`
+      });
+    } else {
+      stageResults.push({ stage: 2, name: "Stage 2: Sand/Anthracite Bed", status: "STANDBY" });
+    }
+
+    // -------------------------------------------------------------
+    // STAGE 3: Targeted Chemical Media
+    // Activated by SV3 (GPIO 21)
+    // -------------------------------------------------------------
+    if (relays[21]) {
+      const actions = [];
+
+      // 1. pH Neutralization (Calcite dissolution for Acid Mine Drainage)
+      if (ph < 6.5) {
+        const initialPh = ph;
+        // Dissolves CaCO3: H+ + CaCO3 -> Ca2+ + HCO3-
+        // Neutralizes pH to safe 7.2 - 7.5, slightly adds 35-50 ppm of dissolved Ca(HCO3)2
+        ph = 7.25 + (Math.random() - 0.5) * 0.2;
+        tds += 35; // Mineralization
+        actions.push(`Calcite bed neutralized acidic AMD (${initialPh.toFixed(2)} -> ${ph.toFixed(2)} pH, +35 ppm Ca²⁺ buffer)`);
+      } else if (ph > 8.5) {
+        const initialPh = ph;
+        ph = 7.6 + (Math.random() - 0.5) * 0.2;
+        actions.push(`Mild acid resin buffered high alkaline water (${initialPh.toFixed(2)} -> ${ph.toFixed(2)} pH)`);
+      }
+
+      // 2. Fluoride Adsorption (Activated Alumina - Al2O3)
+      if (fluoride > 1.0) {
+        const initialF = fluoride;
+        // Activated alumina achieves 75% to 85% removal efficiency
+        fluoride = Math.max(0.25, fluoride * 0.20);
+        actions.push(`Activated Alumina adsorbed fluoride ions (${initialF.toFixed(2)} -> ${fluoride.toFixed(2)} mg/L, 80% removal)`);
+      }
+
+      // 3. Iron Oxidation & Precipitation (Birm / Manganese Greensand)
+      if (iron > 0.3) {
+        const initialFe = iron;
+        // Catalytic oxidation of Fe2+ to Fe3+ precipitate filtered out: 85% removal
+        iron = Math.max(0.05, iron * 0.15);
+        actions.push(`Birm catalytic media oxidized dissolved iron to precipitate (${initialFe.toFixed(2)} -> ${iron.toFixed(2)} mg/L, 85% removal)`);
+      }
+
+      // 4. Arsenic Chemisorption (Zero-Valent Iron / Iron-Oxide Coated Sand)
+      if (arsenic > 0.01) {
+        const initialAs = arsenic;
+        arsenic = Math.max(0.003, arsenic * 0.15);
+        actions.push(`Iron-oxide coated media chemisorbed arsenic ions (${initialAs.toFixed(3)} -> ${arsenic.toFixed(3)} mg/L, 85% removal)`);
+      }
+
+      stageResults.push({
+        stage: 3,
+        name: "Stage 3: Targeted Chemical Media Reactor",
+        status: "ACTIVE",
+        effect: actions.length > 0 ? actions.join(' | ') : "Targeted media online in standby standby/buffer mode."
+      });
+    } else {
+      stageResults.push({ stage: 3, name: "Stage 3: Targeted Media", status: "STANDBY" });
+    }
+
+    // -------------------------------------------------------------
+    // STAGE 4: Granular Activated Carbon (GAC) + Ultrafiltration Polishing
+    // Activated by SV4 (GPIO 22)
+    // -------------------------------------------------------------
+    if (relays[22]) {
+      // GAC adsorbs organic taste/odor, chlorine, residual heavy metal complexes
+      // Also polishes turbidity down to sub-NTU levels (< 0.8 NTU)
+      const initialTurb = turbidity;
+      turbidity = Math.min(turbidity, 0.45 + Math.random() * 0.25);
+
+      // GAC slightly polishes dissolved organics (-15% TDS)
+      const initialTds = tds;
+      tds = Math.max(80, Math.round(tds * 0.88));
+
+      // Residual trace reduction
+      iron = Number((iron * 0.7).toFixed(2));
+      fluoride = Number((fluoride * 0.85).toFixed(2));
+
+      stageResults.push({
+        stage: 4,
+        name: "Stage 4: Granular Activated Carbon (GAC) & Ultrafiltration Polisher",
+        status: "ACTIVE",
+        turbidity_out: turbidity,
+        effect: `Carbon adsorption polished dissolved traces, color & odor. Turbidity: ${initialTurb.toFixed(1)} -> ${turbidity.toFixed(2)} NTU | TDS: ${initialTds} -> ${tds} ppm`
+      });
+    } else {
+      stageResults.push({ stage: 4, name: "Stage 4: Carbon Polisher", status: "STANDBY" });
+    }
+
+    // Final Post-Treatment Values (Effluent)
+    const treated = {
+      ph: Number(ph.toFixed(2)),
+      tds: Math.round(tds),
+      turbidity: Number(turbidity.toFixed(2)),
+      temperature: rawInput.temperature,
+      fluoride: Number(fluoride.toFixed(2)),
+      iron: Number(iron.toFixed(2)),
+      arsenic: Number(arsenic.toFixed(3))
+    };
+
+    // Calculate Removal Efficiencies (%)
+    const efficiencies = {
+      turbidity: rawInput.turbidity > 0 ? Math.max(0, Math.round(((rawInput.turbidity - treated.turbidity) / rawInput.turbidity) * 100)) : 0,
+      tds: rawInput.tds > treated.tds ? Math.round(((rawInput.tds - treated.tds) / rawInput.tds) * 100) : 0,
+      fluoride: labProfile && labProfile.fluoride > 0 ? Math.max(0, Math.round(((labProfile.fluoride - treated.fluoride) / labProfile.fluoride) * 100)) : 0,
+      iron: labProfile && labProfile.iron > 0 ? Math.max(0, Math.round(((labProfile.iron - treated.iron) / labProfile.iron) * 100)) : 0,
+      arsenic: labProfile && labProfile.arsenic > 0 ? Math.max(0, Math.round(((labProfile.arsenic - treated.arsenic) / labProfile.arsenic) * 100)) : 0
+    };
+
+    // Evaluate Post-Treatment IS 10500:2012 Compliance
+    const compliance = this.evaluateIS10500Compliance(treated);
+
+    // Safety Interlock / Diverter Check
+    const diverterTriggered = relays[23] === 1 || !compliance.overallPass;
+    const finalDestination = diverterTriggered
+      ? "RECIRCULATION_LOOP (Water held for secondary pass or reject drain)"
+      : "SAFE_STORAGE_TANK (Potable water certified compliant with IS 10500:2012)";
+
+    return {
+      raw: rawInput,
+      labRaw: labProfile,
+      treated: treated,
+      efficiencies: efficiencies,
+      compliance: compliance,
+      diverterActive: diverterTriggered,
+      finalDestination: finalDestination,
+      stageHistory: stageResults
+    };
+  }
+
+  /**
+   * Verify whether effluent parameters strictly satisfy IS 10500:2012
+   */
+  evaluateIS10500Compliance(sample) {
+    const checks = {
+      ph: {
+        value: sample.ph,
+        target: "6.5 - 8.5",
+        status: sample.ph >= 6.5 && sample.ph <= 8.5 ? "PASS" : "FAIL"
+      },
+      tds: {
+        value: sample.tds,
+        target: "< 500 ppm (Permissible < 2000)",
+        status: sample.tds <= 500 ? "PASS" : (sample.tds <= 2000 ? "PERMISSIBLE" : "FAIL")
+      },
+      turbidity: {
+        value: sample.turbidity,
+        target: "< 1.0 NTU (Permissible < 5.0)",
+        status: sample.turbidity <= 1.0 ? "PASS" : (sample.turbidity <= 5.0 ? "PERMISSIBLE" : "FAIL")
+      },
+      fluoride: {
+        value: sample.fluoride,
+        target: "< 1.0 mg/L (Permissible < 1.5)",
+        status: sample.fluoride <= 1.0 ? "PASS" : (sample.fluoride <= 1.5 ? "PERMISSIBLE" : "FAIL")
+      },
+      iron: {
+        value: sample.iron,
+        target: "< 0.3 mg/L (Permissible < 1.0)",
+        status: sample.iron <= 0.3 ? "PASS" : (sample.iron <= 1.0 ? "PERMISSIBLE" : "FAIL")
+      },
+      arsenic: {
+        value: sample.arsenic,
+        target: "< 0.01 mg/L",
+        status: sample.arsenic <= 0.01 ? "PASS" : (sample.arsenic <= 0.05 ? "PERMISSIBLE" : "FAIL")
+      }
+    };
+
+    const overallPass = Object.values(checks).every(c => c.status === "PASS" || c.status === "PERMISSIBLE");
+    return {
+      checks,
+      overallPass,
+      rating: overallPass ? "IS 10500 COMPLIANT (DRINKABLE)" : "NON-COMPLIANT (REQUIRES RE-CIRCULATION)"
+    };
+  }
+}
+
+// Export for browser
+if (typeof window !== 'undefined') {
+  window.WaterPhysicsSimulation = WaterPhysicsSimulation;
+}
+
+/**
+ * AquaSentinel - Piping & Instrumentation Diagram (P&ID) SVG Renderer
+ *
+ * Renders an animated industrial hydraulic schematic:
+ *  - Raw Water Inlet & Storage Tank
+ *  - Booster Pump & Solenoid Valves (SV1 to SV5)
+ *  - Filter Columns: Pre-Strainer, Dual-Media Sand, Targeted Media, GAC Carbon
+ *  - Clean Water Effluent Tank & Diverter/Recirculation Return Loop
+ *  - Dynamic fluid flow animations using animated SVG strokes and glowing nodes
+ */
+
+class PIDRenderer {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    this.svg = null;
+    this.initSvg();
+  }
+
+  initSvg() {
+    if (!this.container) return;
+
+    this.container.innerHTML = `
+      <svg viewBox="0 0 1000 360" class="pid-svg" id="pidSvgElement" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Neon linear gradients for hydraulic flows -->
+          <linearGradient id="flowGradActive" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#00f2fe" />
+            <stop offset="50%" stop-color="#4facfe" />
+            <stop offset="100%" stop-color="#00f2fe" />
+          </linearGradient>
+
+          <linearGradient id="flowGradRecirc" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ff0844" />
+            <stop offset="100%" stop-color="#ffb199" />
+          </linearGradient>
+
+          <linearGradient id="tankWaterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#00c6ff" stop-opacity="0.8" />
+            <stop offset="100%" stop-color="#0072ff" stop-opacity="0.9" />
+          </linearGradient>
+
+          <linearGradient id="cleanWaterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#00f5d4" stop-opacity="0.8" />
+            <stop offset="100%" stop-color="#0575e6" stop-opacity="0.9" />
+          </linearGradient>
+
+          <linearGradient id="filterMediaGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#2c3e50" />
+            <stop offset="100%" stop-color="#3498db" />
+          </linearGradient>
+
+          <linearGradient id="filterMediaGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#e67e22" />
+            <stop offset="100%" stop-color="#d35400" />
+          </linearGradient>
+
+          <!-- Glow Filter for active pipes -->
+          <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        <!-- Background grid pattern for engineering CAD look -->
+        <g class="cad-grid" opacity="0.15">
+          <line x1="0" y1="90" x2="1000" y2="90" stroke="#00f2fe" stroke-width="0.5" stroke-dasharray="4,4"/>
+          <line x1="0" y1="180" x2="1000" y2="180" stroke="#00f2fe" stroke-width="0.5" stroke-dasharray="4,4"/>
+          <line x1="0" y1="270" x2="1000" y2="270" stroke="#00f2fe" stroke-width="0.5" stroke-dasharray="4,4"/>
+          <line x1="200" y1="0" x2="200" y2="360" stroke="#00f2fe" stroke-width="0.5" stroke-dasharray="4,4"/>
+          <line x1="400" y1="0" x2="400" y2="360" stroke="#00f2fe" stroke-width="0.5" stroke-dasharray="4,4"/>
+          <line x1="600" y1="0" x2="600" y2="360" stroke="#00f2fe" stroke-width="0.5" stroke-dasharray="4,4"/>
+          <line x1="800" y1="0" x2="800" y2="360" stroke="#00f2fe" stroke-width="0.5" stroke-dasharray="4,4"/>
+        </g>
+
+        <!-- PIPING SYSTEM (Background inert pipes) -->
+        <g id="basePipes" stroke="#1f2937" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <!-- Inlet to Stage 1 -->
+          <path d="M 100 180 L 220 180" />
+          <!-- Stage 1 to Stage 2 -->
+          <path d="M 270 180 L 370 180" />
+          <!-- Stage 2 to Stage 3 -->
+          <path d="M 430 180 L 530 180" />
+          <!-- Stage 3 to Stage 4 -->
+          <path d="M 590 180 L 690 180" />
+          <!-- Stage 4 to Diverter SV5 -->
+          <path d="M 750 180 L 840 180" />
+          <!-- SV5 to Clean Tank -->
+          <path d="M 840 180 L 920 180" />
+          <!-- SV5 Recirculation Return Loop (Bottom pipe back to Raw Tank) -->
+          <path d="M 840 180 L 840 300 L 70 300 L 70 240" />
+        </g>
+
+        <!-- DYNAMIC ACTIVE FLOW PIPES (Animated pulses when active) -->
+        <g id="activeFlows" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Flow 1: Raw Tank to Stage 1 (SV1) -->
+          <path id="pipeRawToS1" d="M 100 180 L 220 180" stroke="url(#flowGradActive)" stroke-width="5" class="flow-pulse" />
+
+          <!-- Flow 2: Stage 1 to Stage 2 (SV2) -->
+          <path id="pipeS1ToS2" d="M 270 180 L 370 180" stroke="url(#flowGradActive)" stroke-width="5" class="flow-pulse" />
+
+          <!-- Flow 3: Stage 2 to Stage 3 (SV3) -->
+          <path id="pipeS2ToS3" d="M 430 180 L 530 180" stroke="url(#flowGradActive)" stroke-width="5" class="flow-pulse" />
+
+          <!-- Flow 4: Stage 3 to Stage 4 (SV4) -->
+          <path id="pipeS3ToS4" d="M 590 180 L 690 180" stroke="url(#flowGradActive)" stroke-width="5" class="flow-pulse" />
+
+          <!-- Flow 5: Stage 4 to SV5 -->
+          <path id="pipeS4ToSV5" d="M 750 180 L 840 180" stroke="url(#flowGradActive)" stroke-width="5" class="flow-pulse" />
+
+          <!-- Flow 6: SV5 to Product Tank -->
+          <path id="pipeSV5ToProduct" d="M 840 180 L 920 180" stroke="url(#flowGradActive)" stroke-width="5" class="flow-pulse" />
+
+          <!-- Flow 7: Recirculation Return Loop -->
+          <path id="pipeRecircReturn" d="M 840 180 L 840 300 L 70 300 L 70 240" stroke="url(#flowGradRecirc)" stroke-width="4" stroke-dasharray="6,6" class="flow-pulse-recirc" style="display: none;" />
+        </g>
+
+        <!-- RAW WATER INTAKE TANK -->
+        <g id="rawTankGroup" transform="translate(30, 110)">
+          <!-- Tank Outline -->
+          <rect x="0" y="0" width="70" height="130" rx="8" fill="#111827" stroke="#374151" stroke-width="2"/>
+          <!-- Dynamic Liquid Level -->
+          <rect id="rawTankWater" x="4" y="25" width="62" height="101" rx="4" fill="url(#tankWaterGrad)" />
+          <!-- Tank Label -->
+          <text x="35" y="65" fill="#ffffff" font-size="10" font-weight="700" text-anchor="middle">RAW WATER</text>
+          <text x="35" y="78" fill="#9ca3af" font-size="9" text-anchor="middle">SOURCE TANK</text>
+          <text id="rawTankVolTxt" x="35" y="105" fill="#38bdf8" font-size="10" font-weight="600" text-anchor="middle">1000 L</text>
+          <!-- Level Sensor indicator -->
+          <circle cx="35" cy="15" r="4" fill="#10b981" />
+        </g>
+
+        <!-- STAGE 1: COARSE MESH STRAINER -->
+        <g id="stage1Group" transform="translate(220, 130)">
+          <rect x="0" y="0" width="50" height="100" rx="6" fill="#1f2937" stroke="#4b5563" stroke-width="2" id="s1Rect"/>
+          <!-- Mesh pattern inside -->
+          <line x1="8" y1="20" x2="42" y2="80" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <line x1="8" y1="80" x2="42" y2="20" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <rect x="15" y="35" width="20" height="30" fill="#374151" rx="2" />
+          <text x="25" y="52" fill="#00f2fe" font-size="9" font-weight="700" text-anchor="middle">50μm</text>
+          <text x="25" y="-10" fill="#e5e7eb" font-size="10" font-weight="700" text-anchor="middle">STAGE 1</text>
+          <text x="25" y="115" fill="#9ca3af" font-size="9" text-anchor="middle">Strainer</text>
+          <circle id="s1Led" cx="25" cy="5" r="3" fill="#10b981"/>
+        </g>
+
+        <!-- STAGE 2: DUAL-MEDIA SAND/ANTHRACITE BED -->
+        <g id="stage2Group" transform="translate(370, 115)">
+          <rect x="0" y="0" width="60" height="130" rx="8" fill="#111827" stroke="#4b5563" stroke-width="2" id="s2Rect"/>
+          <!-- Anthracite Layer (dark gray) -->
+          <rect x="5" y="25" width="50" height="35" fill="#374151" rx="2" opacity="0.9"/>
+          <!-- Silica Sand Layer (golden tan) -->
+          <rect x="5" y="62" width="50" height="40" fill="#b45309" rx="2" opacity="0.8"/>
+          <!-- Gravel Support (dark) -->
+          <rect x="5" y="104" width="50" height="20" fill="#1f2937" rx="2" opacity="0.9"/>
+          <text x="30" y="-10" fill="#e5e7eb" font-size="10" font-weight="700" text-anchor="middle">STAGE 2</text>
+          <text x="30" y="46" fill="#f3f4f6" font-size="8" font-weight="600" text-anchor="middle">ANTHRACITE</text>
+          <text x="30" y="85" fill="#fef3c7" font-size="8" font-weight="600" text-anchor="middle">SILICA SAND</text>
+          <text x="30" y="145" fill="#9ca3af" font-size="9" text-anchor="middle">Dual-Media</text>
+          <circle id="s2Led" cx="30" cy="5" r="3" fill="#6b7280"/>
+        </g>
+
+        <!-- STAGE 3: TARGETED MEDIA REACTOR (Calcite / Alumina / Birm) -->
+        <g id="stage3Group" transform="translate(530, 110)">
+          <rect x="0" y="0" width="60" height="140" rx="8" fill="#111827" stroke="#4b5563" stroke-width="2" id="s3Rect"/>
+          <!-- Specialized Media bed pattern -->
+          <rect id="s3MediaFill" x="5" y="25" width="50" height="100" fill="url(#filterMediaGrad2)" rx="3" opacity="0.75"/>
+          <text x="30" y="-10" fill="#e5e7eb" font-size="10" font-weight="700" text-anchor="middle">STAGE 3</text>
+          <text id="s3Label1" x="30" y="60" fill="#ffffff" font-size="8" font-weight="700" text-anchor="middle">TARGETED</text>
+          <text id="s3Label2" x="30" y="73" fill="#ffffff" font-size="8" font-weight="700" text-anchor="middle">MEDIA</text>
+          <text id="s3Sublabel" x="30" y="100" fill="#fef08a" font-size="7" font-weight="600" text-anchor="middle">Al2O3 / Birm</text>
+          <text x="30" y="155" fill="#9ca3af" font-size="9" text-anchor="middle">Chemical Adsorb</text>
+          <circle id="s3Led" cx="30" cy="5" r="3" fill="#6b7280"/>
+        </g>
+
+        <!-- STAGE 4: GRANULAR ACTIVATED CARBON (GAC) + ULTRAFILTRATION -->
+        <g id="stage4Group" transform="translate(690, 115)">
+          <rect x="0" y="0" width="60" height="130" rx="8" fill="#111827" stroke="#4b5563" stroke-width="2" id="s4Rect"/>
+          <!-- Carbon Pellets Layer -->
+          <rect x="5" y="25" width="50" height="65" fill="#1e293b" rx="2" stroke="#475569" stroke-width="1"/>
+          <!-- Ultrafiltration polishing barrier -->
+          <rect x="5" y="92" width="50" height="30" fill="#0284c7" rx="2" opacity="0.75"/>
+          <text x="30" y="-10" fill="#e5e7eb" font-size="10" font-weight="700" text-anchor="middle">STAGE 4</text>
+          <text x="30" y="55" fill="#94a3b8" font-size="8" font-weight="700" text-anchor="middle">GAC CARBON</text>
+          <text x="30" y="110" fill="#e0f2fe" font-size="8" font-weight="600" text-anchor="middle">UF MEMBRANE</text>
+          <text x="30" y="145" fill="#9ca3af" font-size="9" text-anchor="middle">Polishing Bed</text>
+          <circle id="s4Led" cx="30" cy="5" r="3" fill="#10b981"/>
+        </g>
+
+        <!-- SOLENOID VALVES (SV1 to SV5) -->
+        <!-- SV1 (Inlet Solenoid) -->
+        <g id="valveSV1" transform="translate(150, 165)">
+          <polygon points="0,5 20,15 0,25" fill="#ef4444" id="v1PolyLeft" />
+          <polygon points="20,15 40,5 40,25" fill="#ef4444" id="v1PolyRight" />
+          <rect x="16" y="0" width="8" height="10" fill="#9ca3af" rx="1"/>
+          <text x="20" y="-3" fill="#f3f4f6" font-size="8" font-weight="700" text-anchor="middle">SV1</text>
+          <text x="20" y="34" fill="#9ca3af" font-size="7" text-anchor="middle">GPIO18</text>
+        </g>
+
+        <!-- SV2 (Sand Filter Solenoid) -->
+        <g id="valveSV2" transform="translate(310, 165)">
+          <polygon points="0,5 20,15 0,25" fill="#6b7280" id="v2PolyLeft" />
+          <polygon points="20,15 40,5 40,25" fill="#6b7280" id="v2PolyRight" />
+          <rect x="16" y="0" width="8" height="10" fill="#9ca3af" rx="1"/>
+          <text x="20" y="-3" fill="#f3f4f6" font-size="8" font-weight="700" text-anchor="middle">SV2</text>
+          <text x="20" y="34" fill="#9ca3af" font-size="7" text-anchor="middle">GPIO19</text>
+        </g>
+
+        <!-- SV3 (Targeted Media Solenoid) -->
+        <g id="valveSV3" transform="translate(470, 165)">
+          <polygon points="0,5 20,15 0,25" fill="#6b7280" id="v3PolyLeft" />
+          <polygon points="20,15 40,5 40,25" fill="#6b7280" id="v3PolyRight" />
+          <rect x="16" y="0" width="8" height="10" fill="#9ca3af" rx="1"/>
+          <text x="20" y="-3" fill="#f3f4f6" font-size="8" font-weight="700" text-anchor="middle">SV3</text>
+          <text x="20" y="34" fill="#9ca3af" font-size="7" text-anchor="middle">GPIO21</text>
+        </g>
+
+        <!-- SV4 (Carbon Polisher Solenoid) -->
+        <g id="valveSV4" transform="translate(630, 165)">
+          <polygon points="0,5 20,15 0,25" fill="#ef4444" id="v4PolyLeft" />
+          <polygon points="20,15 40,5 40,25" fill="#ef4444" id="v4PolyRight" />
+          <rect x="16" y="0" width="8" height="10" fill="#9ca3af" rx="1"/>
+          <text x="20" y="-3" fill="#f3f4f6" font-size="8" font-weight="700" text-anchor="middle">SV4</text>
+          <text x="20" y="34" fill="#9ca3af" font-size="7" text-anchor="middle">GPIO22</text>
+        </g>
+
+        <!-- SV5 (Recirculation / Diverter 3-way valve) -->
+        <g id="valveSV5" transform="translate(820, 165)">
+          <circle cx="20" cy="15" r="14" fill="#1f2937" stroke="#4b5563" stroke-width="2" id="v5Circle"/>
+          <polygon points="8,15 32,8 32,22" fill="#ef4444" id="v5Arrow" />
+          <text x="20" y="-3" fill="#f3f4f6" font-size="8" font-weight="700" text-anchor="middle">SV5</text>
+          <text x="20" y="37" fill="#9ca3af" font-size="7" text-anchor="middle">DIVERT</text>
+        </g>
+
+        <!-- PRODUCT WATER STORAGE TANK (SAFE OUTPUT) -->
+        <g id="productTankGroup" transform="translate(900, 110)">
+          <rect x="0" y="0" width="75" height="130" rx="8" fill="#111827" stroke="#10b981" stroke-width="2" id="productTankOutline"/>
+          <rect id="cleanTankWater" x="4" y="35" width="67" height="91" rx="4" fill="url(#cleanWaterGrad)" />
+          <text x="37" y="65" fill="#ffffff" font-size="10" font-weight="700" text-anchor="middle">TREATED</text>
+          <text x="37" y="78" fill="#a7f3d0" font-size="9" text-anchor="middle">SAFE WATER</text>
+          <text id="productTankStatusTxt" x="37" y="105" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">IS 10500 OK</text>
+          <circle id="productTankLed" cx="37" cy="15" r="4" fill="#10b981" />
+        </g>
+
+        <!-- SENSOR PROBE SAMPLING NODES ON PIPELINE -->
+        <!-- In-situ Sensor Cluster 1: Raw Water Line -->
+        <g transform="translate(125, 145)">
+          <circle cx="0" cy="0" r="10" fill="#0f172a" stroke="#00f2fe" stroke-width="1.5" />
+          <text x="0" y="3" fill="#00f2fe" font-size="7" font-weight="700" text-anchor="middle">RAW</text>
+          <line x1="0" y1="10" x2="0" y2="35" stroke="#00f2fe" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="0" y="47" fill="#38bdf8" font-size="7" text-anchor="middle">PROBES</text>
+        </g>
+
+        <!-- In-situ Sensor Cluster 2: Effluent Verification Line -->
+        <g transform="translate(785, 145)">
+          <circle cx="0" cy="0" r="10" fill="#0f172a" stroke="#10b981" stroke-width="1.5" />
+          <text x="0" y="3" fill="#10b981" font-size="7" font-weight="700" text-anchor="middle">TEST</text>
+          <line x1="0" y1="10" x2="0" y2="35" stroke="#10b981" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="0" y="47" fill="#34d399" font-size="7" text-anchor="middle">VERIFY</text>
+        </g>
+      </svg>
+    `;
+  }
+
+  /**
+   * Update P&ID visual state based on firmware relays and treatment model
+   */
+  update(relays, systemHealth, activeStages, isDiverted) {
+    // 1. Valve 1 (Inlet / Strainer)
+    const sv1Active = relays[18] === 1;
+    this.setValveState('v1PolyLeft', 'v1PolyRight', sv1Active);
+    this.setPipeFlow('pipeRawToS1', sv1Active);
+    this.setColumnHighlight('s1Rect', 's1Led', sv1Active, '#00f2fe');
+
+    // 2. Valve 2 (Sand / Anthracite Media)
+    const sv2Active = relays[19] === 1;
+    this.setValveState('v2PolyLeft', 'v2PolyRight', sv2Active);
+    this.setPipeFlow('pipeS1ToS2', sv1Active && sv2Active);
+    this.setColumnHighlight('s2Rect', 's2Led', sv2Active, '#3b82f6');
+
+    // 3. Valve 3 (Targeted Specialized Media)
+    const sv3Active = relays[21] === 1;
+    this.setValveState('v3PolyLeft', 'v3PolyRight', sv3Active);
+    this.setPipeFlow('pipeS2ToS3', sv3Active);
+    this.setColumnHighlight('s3Rect', 's3Led', sv3Active, '#f59e0b');
+
+    // 4. Valve 4 (Carbon Polisher)
+    const sv4Active = relays[22] === 1;
+    this.setValveState('v4PolyLeft', 'v4PolyRight', sv4Active);
+    this.setPipeFlow('pipeS3ToS4', sv4Active);
+    this.setPipeFlow('pipeS4ToSV5', sv4Active);
+    this.setColumnHighlight('s4Rect', 's4Led', sv4Active, '#10b981');
+
+    // 5. Valve 5 & Diverter / Safe Destination
+    const sv5Divert = relays[23] === 1 || isDiverted;
+    const v5Arrow = document.getElementById('v5Arrow');
+    const v5Circle = document.getElementById('v5Circle');
+    const pipeSV5ToProduct = document.getElementById('pipeSV5ToProduct');
+    const pipeRecircReturn = document.getElementById('pipeRecircReturn');
+    const productTankStatusTxt = document.getElementById('productTankStatusTxt');
+    const productTankLed = document.getElementById('productTankLed');
+    const productTankOutline = document.getElementById('productTankOutline');
+
+    if (sv5Divert) {
+      // Divert to recirculation loop
+      if (v5Arrow) {
+        v5Arrow.setAttribute('fill', '#ef4444');
+        v5Arrow.setAttribute('transform', 'rotate(90 20 15)');
+      }
+      if (v5Circle) v5Circle.setAttribute('stroke', '#ef4444');
+      if (pipeSV5ToProduct) pipeSV5ToProduct.style.display = 'none';
+      if (pipeRecircReturn) pipeRecircReturn.style.display = 'block';
+
+      if (productTankStatusTxt) {
+        productTankStatusTxt.textContent = "STANDBY / RECIRC";
+        productTankStatusTxt.setAttribute('fill', '#f59e0b');
+      }
+      if (productTankLed) productTankLed.setAttribute('fill', '#ef4444');
+      if (productTankOutline) productTankOutline.setAttribute('stroke', '#ef4444');
+    } else {
+      // Flow directly to Safe Product Water Tank
+      if (v5Arrow) {
+        v5Arrow.setAttribute('fill', '#10b981');
+        v5Arrow.removeAttribute('transform');
+      }
+      if (v5Circle) v5Circle.setAttribute('stroke', '#10b981');
+      if (pipeSV5ToProduct) pipeSV5ToProduct.style.display = 'block';
+      if (pipeRecircReturn) pipeRecircReturn.style.display = 'none';
+
+      if (productTankStatusTxt) {
+        productTankStatusTxt.textContent = "IS 10500 OK";
+        productTankStatusTxt.setAttribute('fill', '#10b981');
+      }
+      if (productTankLed) productTankLed.setAttribute('fill', '#10b981');
+      if (productTankOutline) productTankOutline.setAttribute('stroke', '#10b981');
+    }
+  }
+
+  setValveState(idLeft, idRight, isOpen) {
+    const left = document.getElementById(idLeft);
+    const right = document.getElementById(idRight);
+    const color = isOpen ? '#10b981' : '#ef4444'; // Green if energized/open, Red if closed
+    if (left) left.setAttribute('fill', color);
+    if (right) right.setAttribute('fill', color);
+  }
+
+  setPipeFlow(pipeId, isActive) {
+    const pipe = document.getElementById(pipeId);
+    if (!pipe) return;
+    if (isActive) {
+      pipe.style.opacity = '1';
+      pipe.setAttribute('filter', 'url(#neonGlow)');
+    } else {
+      pipe.style.opacity = '0.15';
+      pipe.removeAttribute('filter');
+    }
+  }
+
+  setColumnHighlight(rectId, ledId, isActive, activeColor) {
+    const rect = document.getElementById(rectId);
+    const led = document.getElementById(ledId);
+    if (rect) {
+      if (isActive) {
+        rect.setAttribute('stroke', activeColor);
+        rect.setAttribute('stroke-width', '2.5');
+      } else {
+        rect.setAttribute('stroke', '#374151');
+        rect.setAttribute('stroke-width', '1.5');
+      }
+    }
+    if (led) {
+      led.setAttribute('fill', isActive ? activeColor : '#4b5563');
+    }
+  }
+}
+
+// Export for browser
+if (typeof window !== 'undefined') {
+  window.PIDRenderer = PIDRenderer;
+}
+
+/**
+ * AquaSentinel - Real-Time Multi-Channel Canvas Strip-Chart Oscilloscope
+ *
+ * Zero-dependency, high-performance HTML5 Canvas plotter for:
+ *  - pH (0 to 14) with IS 10500 safe window (6.5 to 8.5)
+ *  - TDS (0 to 2000 ppm) with 500 ppm desirable / 2000 ppm permissible limits
+ *  - Turbidity (0 to 100 NTU) with 1.0 NTU limit
+ */
+
+class TelemetryChart {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+
+    // Buffer for 60 seconds of data (1 sample per 500ms = 120 points)
+    this.maxPoints = 80;
+    this.history = {
+      ph: [],
+      tds: [],
+      turbidity: []
+    };
+
+    this.activeChannel = 'ALL'; // 'ALL', 'PH', 'TDS', 'TURB'
+
+    // Resize handling
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  resize() {
+    if (!this.canvas) return;
+    const rect = this.canvas.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      this.canvas.width = rect.width * (window.devicePixelRatio || 1);
+      this.canvas.height = rect.height * (window.devicePixelRatio || 1);
+      this.ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+    }
+  }
+
+  pushData(ph, tds, turbidity) {
+    this.history.ph.push(ph);
+    if (this.history.ph.length > this.maxPoints) this.history.ph.shift();
+
+    this.history.tds.push(tds);
+    if (this.history.tds.length > this.maxPoints) this.history.tds.shift();
+
+    this.history.turbidity.push(turbidity);
+    if (this.history.turbidity.length > this.maxPoints) this.history.turbidity.shift();
+
+    this.render();
+  }
+
+  setFilter(channel) {
+    this.activeChannel = channel;
+    this.render();
+  }
+
+  render() {
+    if (!this.canvas || !this.ctx) return;
+    const ctx = this.ctx;
+    const rect = this.canvas.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    // Clear background
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw Dark Oscilloscope Grid
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+
+    // Horizontal grid lines
+    const gridRows = 5;
+    for (let i = 0; i <= gridRows; i++) {
+      const y = (height / gridRows) * i;
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(width - 10, y);
+      ctx.stroke();
+    }
+
+    // Vertical time grid lines
+    const gridCols = 8;
+    for (let j = 0; j <= gridCols; j++) {
+      const x = 40 + ((width - 50) / gridCols) * j;
+      ctx.beginPath();
+      ctx.moveTo(x, 10);
+      ctx.lineTo(x, height - 20);
+      ctx.stroke();
+    }
+
+    // Axis labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '9px monospace';
+    ctx.fillText('0s', width - 25, height - 6);
+    ctx.fillText('-15s', width - (width - 50) * 0.25 - 20, height - 6);
+    ctx.fillText('-30s', width - (width - 50) * 0.5 - 20, height - 6);
+    ctx.fillText('-45s', 40, height - 6);
+
+    const plotX = 45;
+    const plotW = width - 60;
+    const plotY = 15;
+    const plotH = height - 40;
+
+    // 1. Draw pH Channel (Green neon)
+    if (this.activeChannel === 'ALL' || this.activeChannel === 'PH') {
+      this.drawSeries(
+        ctx,
+        this.history.ph,
+        0, 14,
+        plotX, plotY, plotW, plotH,
+        '#10b981',
+        'pH',
+        // Highlight safe band (6.5 to 8.5)
+        { min: 6.5, max: 8.5, bandColor: 'rgba(16, 185, 129, 0.08)' }
+      );
+    }
+
+    // 2. Draw TDS Channel (Cyan neon)
+    if (this.activeChannel === 'ALL' || this.activeChannel === 'TDS') {
+      this.drawSeries(
+        ctx,
+        this.history.tds,
+        0, 2000,
+        plotX, plotY, plotW, plotH,
+        '#00f2fe',
+        'TDS (ppm)',
+        { min: 0, max: 500, bandColor: 'rgba(0, 242, 254, 0.05)' }
+      );
+    }
+
+    // 3. Draw Turbidity Channel (Amber neon)
+    if (this.activeChannel === 'ALL' || this.activeChannel === 'TURB') {
+      this.drawSeries(
+        ctx,
+        this.history.turbidity,
+        0, 120,
+        plotX, plotY, plotW, plotH,
+        '#f59e0b',
+        'Turb (NTU)',
+        { min: 0, max: 5.0, bandColor: 'rgba(245, 158, 11, 0.05)' }
+      );
+    }
+  }
+
+  drawSeries(ctx, data, minVal, maxVal, x0, y0, w, h, strokeColor, label, safeZone) {
+    if (data.length < 2) return;
+
+    // Draw Safe Zone Background Shading
+    if (safeZone) {
+      const ySafeMax = y0 + h - ((safeZone.max - minVal) / (maxVal - minVal)) * h;
+      const ySafeMin = y0 + h - ((safeZone.min - minVal) / (maxVal - minVal)) * h;
+      ctx.fillStyle = safeZone.bandColor;
+      ctx.fillRect(x0, Math.min(ySafeMax, ySafeMin), w, Math.abs(ySafeMax - ySafeMin));
+
+      // Dashed safe boundary line
+      ctx.strokeStyle = strokeColor;
+      ctx.setLineDash([3, 3]);
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(x0, ySafeMax);
+      ctx.lineTo(x0 + w, ySafeMax);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Draw Waveform
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    const step = w / (this.maxPoints - 1);
+    const offset = this.maxPoints - data.length;
+
+    for (let i = 0; i < data.length; i++) {
+      const val = data[i];
+      const clamped = Math.max(minVal, Math.min(maxVal, val));
+      const normalized = (clamped - minVal) / (maxVal - minVal);
+      const x = x0 + (offset + i) * step;
+      const y = y0 + h - normalized * h;
+
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.stroke();
+
+    // Pulse dot at current live point
+    const lastVal = data[data.length - 1];
+    const lastNorm = (Math.max(minVal, Math.min(maxVal, lastVal)) - minVal) / (maxVal - minVal);
+    const lastX = x0 + (offset + data.length - 1) * step;
+    const lastY = y0 + h - lastNorm * h;
+
+    ctx.fillStyle = strokeColor;
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Small label tag
+    ctx.fillStyle = strokeColor;
+    ctx.font = '10px monospace';
+    ctx.fillText(`${label}: ${lastVal}`, lastX - 55, lastY - 6);
+  }
+}
+
+// Export for browser
+if (typeof window !== 'undefined') {
+  window.TelemetryChart = TelemetryChart;
+}
+
+/**
+ * AquaSentinel - Master Application Coordinator
+ *
+ * Connects the UI, Embedded ESP32 Firmware Simulator, Water Treatment Physics,
+ * P&ID Schematic, Canvas Strip Chart, and Virtual UART Serial Terminal.
+ */
+
+// Preset Jharkhand Contamination Scenarios
+const PRESET_SCENARIOS = {
+  SCENARIO_NORMAL: {
+    id: "SCENARIO_NORMAL",
+    name: "Scenario 1: Clean Rural Aquifer (Normal)",
+    description: "Pristine groundwater passing all IS 10500:2012 drinking water standards. All treatment stages in standby/polishing mode.",
+    raw: { ph: 7.20, tds: 280, turbidity: 0.8, temperature: 24.5, flow: 12.0 },
+    lab: { fluoride: 0.45, iron: 0.12, arsenic: 0.002, region: "Ranchi Outskirts Groundwater" }
+  },
+  SCENARIO_TURBID_RUNOFF: {
+    id: "SCENARIO_TURBID_RUNOFF",
+    name: "Scenario 2: Monsoon Mining Runoff (Turbid)",
+    description: "Heavy silt and suspended colloidal matter (> 85 NTU) washed from opencast coal pit surfaces into local village ponds during monsoon rains.",
+    raw: { ph: 6.90, tds: 420, turbidity: 88.0, temperature: 26.0, flow: 14.5 },
+    lab: { fluoride: 0.60, iron: 0.25, arsenic: 0.003, region: "Dhanbad Opencast Coalfield Runoff" }
+  },
+  SCENARIO_ACID_MINE_DRAINAGE: {
+    id: "SCENARIO_ACID_MINE_DRAINAGE",
+    name: "Scenario 3: Dhanbad Acid Mine Drainage (AMD)",
+    description: "Pyrite (FeS2) oxidation generates low pH acidic water (pH 3.8) with heavy dissolved ferrous/ferric iron (4.5 mg/L) and elevated sulfate mineralization.",
+    raw: { ph: 3.80, tds: 1350, turbidity: 34.0, temperature: 27.5, flow: 10.0 },
+    lab: { fluoride: 0.80, iron: 4.80, arsenic: 0.008, region: "Jharia / Dhanbad Deep Mine Seepage" }
+  },
+  SCENARIO_FLUORIDE_BELT: {
+    id: "SCENARIO_FLUORIDE_BELT",
+    name: "Scenario 4: Palamu Fluorosis Aquifer (Fluoride)",
+    description: "High geogenic fluoride leaching from granite/gneiss bedrocks in Palamu/Garhwa belt (3.8 mg/L). Causes dental and crippling skeletal fluorosis without treatment.",
+    raw: { ph: 7.90, tds: 820, turbidity: 3.2, temperature: 25.0, flow: 11.0 },
+    lab: { fluoride: 3.80, iron: 0.20, arsenic: 0.004, region: "Palamu/Daltonganj Deep Borewell" }
+  },
+  SCENARIO_CRITICAL_MULTI: {
+    id: "SCENARIO_CRITICAL_MULTI",
+    name: "Scenario 5: Multi-Contaminant Mining Seepage",
+    description: "Severe combined contamination: Acidic pH (4.8), heavy colloidal silt (65 NTU), high mineralization (1650 ppm TDS), elevated Iron (3.4 mg/L), and trace Arsenic.",
+    raw: { ph: 4.80, tds: 1650, turbidity: 65.0, temperature: 28.0, flow: 8.5 },
+    lab: { fluoride: 2.10, iron: 3.40, arsenic: 0.045, region: "Chaibasa / West Singhbhum Mineral Belt" }
+  }
+};
+
+class AquaSentinelApp {
+  constructor() {
+    this.firmware = new ESP32FirmwareCore();
+    this.physics = new WaterPhysicsSimulation();
+    this.pidRenderer = new PIDRenderer('pidContainer');
+    this.chart = new TelemetryChart('telemetryCanvas');
+
+    // Current State Variables
+    this.currentScenarioKey = 'SCENARIO_NORMAL';
+    this.rawSensors = { ...PRESET_SCENARIOS.SCENARIO_NORMAL.raw };
+    this.labProfile = { ...PRESET_SCENARIOS.SCENARIO_NORMAL.lab };
+    this.isSerialPaused = false;
+    this.lastExecResult = null;
+    this.lastPhysicsResult = null;
+
+    // Simulation Tick interval (250ms = 4Hz FreeRTOS control task)
+    this.timerInterval = null;
+
+    this.initUI();
+    this.bindEvents();
+    this.loadScenario('SCENARIO_NORMAL');
+    this.startLoop();
+  }
+
+  initUI() {
+    this.dom = {
+      // Scenario buttons
+      scenarioButtons: document.querySelectorAll('.scenario-btn'),
+      scenarioTitle: document.getElementById('scenarioTitle'),
+      scenarioDesc: document.getElementById('scenarioDesc'),
+      scenarioRegion: document.getElementById('scenarioRegion'),
+
+      // Sliders & Inputs
+      sliderPh: document.getElementById('sliderPh'),
+      sliderTds: document.getElementById('sliderTds'),
+      sliderTurb: document.getElementById('sliderTurb'),
+      sliderTemp: document.getElementById('sliderTemp'),
+      sliderFlow: document.getElementById('sliderFlow'),
+
+      // Slider value indicators
+      valPh: document.getElementById('valPh'),
+      valTds: document.getElementById('valTds'),
+      valTurb: document.getElementById('valTurb'),
+      valTemp: document.getElementById('valTemp'),
+      valFlow: document.getElementById('valFlow'),
+
+      // ADC displays
+      adcPhTxt: document.getElementById('adcPhTxt'),
+      adcTdsTxt: document.getElementById('adcTdsTxt'),
+      adcTurbTxt: document.getElementById('adcTurbTxt'),
+
+      // Lab contaminants
+      labFluorideSelect: document.getElementById('labFluorideSelect'),
+      labIronSelect: document.getElementById('labIronSelect'),
+      labArsenicSelect: document.getElementById('labArsenicSelect'),
+
+      // Master System Status
+      masterStatusBadge: document.getElementById('masterStatusBadge'),
+      fsmStateBadge: document.getElementById('fsmStateBadge'),
+      mcuUptimeTxt: document.getElementById('mcuUptimeTxt'),
+      coreFreqTxt: document.getElementById('coreFreqTxt'),
+      activeAlertsContainer: document.getElementById('activeAlertsContainer'),
+
+      // Treatment & Verification
+      treatmentStagesList: document.getElementById('treatmentStagesList'),
+      diverterStatusBadge: document.getElementById('diverterStatusBadge'),
+      complianceRatingBadge: document.getElementById('complianceRatingBadge'),
+
+      // Comparison Table Elements
+      rawPhComp: document.getElementById('rawPhComp'),
+      treatedPhComp: document.getElementById('treatedPhComp'),
+      phEffComp: document.getElementById('phEffComp'),
+      phStatusComp: document.getElementById('phStatusComp'),
+
+      rawTdsComp: document.getElementById('rawTdsComp'),
+      treatedTdsComp: document.getElementById('treatedTdsComp'),
+      tdsEffComp: document.getElementById('tdsEffComp'),
+      tdsStatusComp: document.getElementById('tdsStatusComp'),
+
+      rawTurbComp: document.getElementById('rawTurbComp'),
+      treatedTurbComp: document.getElementById('treatedTurbComp'),
+      turbEffComp: document.getElementById('turbEffComp'),
+      turbStatusComp: document.getElementById('turbStatusComp'),
+
+      rawFluorideComp: document.getElementById('rawFluorideComp'),
+      treatedFluorideComp: document.getElementById('treatedFluorideComp'),
+      fluorideEffComp: document.getElementById('fluorideEffComp'),
+      fluorideStatusComp: document.getElementById('fluorideStatusComp'),
+
+      rawIronComp: document.getElementById('rawIronComp'),
+      treatedIronComp: document.getElementById('treatedIronComp'),
+      ironEffComp: document.getElementById('ironEffComp'),
+      ironStatusComp: document.getElementById('ironStatusComp'),
+
+      // Virtual UART Terminal
+      serialOutput: document.getElementById('serialOutput'),
+      btnCopySerial: document.getElementById('btnCopySerial'),
+      btnClearSerial: document.getElementById('btnClearSerial'),
+      btnPauseSerial: document.getElementById('btnPauseSerial'),
+
+      // Chart Filter Buttons
+      chartFilterBtns: document.querySelectorAll('.chart-filter-btn'),
+
+      // GPIO Pins on Virtual Board
+      gpioIndicators: {
+        pin18: document.getElementById('gpio18Led'),
+        pin19: document.getElementById('gpio19Led'),
+        pin21: document.getElementById('gpio21Led'),
+        pin22: document.getElementById('gpio22Led'),
+        pin23: document.getElementById('gpio23Led'),
+        pin34: document.getElementById('gpio34Led'),
+        pin35: document.getElementById('gpio35Led'),
+        pin36: document.getElementById('gpio36Led')
+      }
+    };
+  }
+
+  bindEvents() {
+    // Scenario Buttons
+    this.dom.scenarioButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const scenarioKey = btn.getAttribute('data-scenario');
+        this.loadScenario(scenarioKey);
+      });
+    });
+
+    // Slider Listeners (Dynamic Sandbox control)
+    const updateFromSliders = () => {
+      this.rawSensors.ph = parseFloat(this.dom.sliderPh.value);
+      this.rawSensors.tds = parseFloat(this.dom.sliderTds.value);
+      this.rawSensors.turbidity = parseFloat(this.dom.sliderTurb.value);
+      this.rawSensors.temperature = parseFloat(this.dom.sliderTemp.value);
+      this.rawSensors.flow = parseFloat(this.dom.sliderFlow.value);
+
+      // Deselect scenario button styling if manually modified
+      this.dom.scenarioButtons.forEach(b => b.classList.remove('active'));
+      if (this.dom.scenarioTitle) this.dom.scenarioTitle.textContent = "Custom Manual Sandbox Mode";
+      if (this.dom.scenarioDesc) this.dom.scenarioDesc.textContent = "User-overridden sensor inputs to stress test embedded decision logic.";
+      if (this.dom.scenarioRegion) this.dom.scenarioRegion.textContent = "Custom Field Simulation";
+
+      this.updateSliderDisplays();
+    };
+
+    this.dom.sliderPh.addEventListener('input', updateFromSliders);
+    this.dom.sliderTds.addEventListener('input', updateFromSliders);
+    this.dom.sliderTurb.addEventListener('input', updateFromSliders);
+    this.dom.sliderTemp.addEventListener('input', updateFromSliders);
+    this.dom.sliderFlow.addEventListener('input', updateFromSliders);
+
+    // Lab Profile Dropdown Listeners
+    this.dom.labFluorideSelect.addEventListener('change', (e) => {
+      this.labProfile.fluoride = parseFloat(e.target.value);
+    });
+    this.dom.labIronSelect.addEventListener('change', (e) => {
+      this.labProfile.iron = parseFloat(e.target.value);
+    });
+    this.dom.labArsenicSelect.addEventListener('change', (e) => {
+      this.labProfile.arsenic = parseFloat(e.target.value);
+    });
+
+    // Serial Terminal Controls
+    this.dom.btnClearSerial.addEventListener('click', () => {
+      this.firmware.serialBuffer = [];
+      this.dom.serialOutput.textContent = '';
+    });
+
+    this.dom.btnPauseSerial.addEventListener('click', () => {
+      this.isSerialPaused = !this.isSerialPaused;
+      this.dom.btnPauseSerial.textContent = this.isSerialPaused ? "Resume Stream" : "Pause Stream";
+      this.dom.btnPauseSerial.classList.toggle('btn-warn', this.isSerialPaused);
+    });
+
+    this.dom.btnCopySerial.addEventListener('click', () => {
+      const text = this.firmware.serialBuffer.join('\n');
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = this.dom.btnCopySerial.textContent;
+        this.dom.btnCopySerial.textContent = "Copied!";
+        setTimeout(() => { this.dom.btnCopySerial.textContent = orig; }, 1500);
+      });
+    });
+
+    // Chart Filter Channels
+    this.dom.chartFilterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.dom.chartFilterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const ch = btn.getAttribute('data-channel');
+        this.chart.setFilter(ch);
+      });
+    });
+  }
+
+  loadScenario(scenarioKey) {
+    const sc = PRESET_SCENARIOS[scenarioKey];
+    if (!sc) return;
+
+    this.currentScenarioKey = scenarioKey;
+    this.rawSensors = { ...sc.raw };
+    this.labProfile = { ...sc.lab };
+
+    // Update Buttons UI
+    this.dom.scenarioButtons.forEach(btn => {
+      if (btn.getAttribute('data-scenario') === scenarioKey) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Update Scenario Info
+    if (this.dom.scenarioTitle) this.dom.scenarioTitle.textContent = sc.name;
+    if (this.dom.scenarioDesc) this.dom.scenarioDesc.textContent = sc.description;
+    if (this.dom.scenarioRegion) this.dom.scenarioRegion.textContent = sc.lab.region;
+
+    // Update Slider inputs
+    this.dom.sliderPh.value = this.rawSensors.ph;
+    this.dom.sliderTds.value = this.rawSensors.tds;
+    this.dom.sliderTurb.value = this.rawSensors.turbidity;
+    this.dom.sliderTemp.value = this.rawSensors.temperature;
+    this.dom.sliderFlow.value = this.rawSensors.flow;
+
+    // Update Lab Selects
+    this.dom.labFluorideSelect.value = String(this.labProfile.fluoride);
+    this.dom.labIronSelect.value = String(this.labProfile.iron);
+    this.dom.labArsenicSelect.value = String(this.labProfile.arsenic);
+
+    this.updateSliderDisplays();
+    this.firmware.logSerial("SCENARIO", `Loaded Preset Profile: [${sc.name}]`);
+  }
+
+  updateSliderDisplays() {
+    this.dom.valPh.textContent = this.rawSensors.ph.toFixed(2);
+    this.dom.valTds.textContent = `${Math.round(this.rawSensors.tds)} ppm`;
+    this.dom.valTurb.textContent = `${this.rawSensors.turbidity.toFixed(1)} NTU`;
+    this.dom.valTemp.textContent = `${this.rawSensors.temperature.toFixed(1)} °C`;
+    this.dom.valFlow.textContent = `${this.rawSensors.flow.toFixed(1)} L/m`;
+  }
+
+  startLoop() {
+    if (this.timerInterval) clearInterval(this.timerInterval);
+
+    // FreeRTOS Task Scheduler emulation: 250ms tick
+    this.timerInterval = setInterval(() => {
+      this.tick();
+    }, 250);
+  }
+
+  tick() {
+    // 1. Execute ESP32 Firmware Cycle
+    const mcuResult = this.firmware.executeCycle(this.rawSensors, this.labProfile);
+    this.lastExecResult = mcuResult;
+
+    // 2. Execute Water Physics & Treatment mass balance
+    const physicsResult = this.physics.processFiltration(mcuResult.calibrated, this.labProfile, mcuResult.relays);
+    this.lastPhysicsResult = physicsResult;
+
+    // 3. Update P&ID SVG Diagram
+    this.pidRenderer.update(
+      mcuResult.relays,
+      mcuResult.health,
+      mcuResult.stages,
+      physicsResult.diverterActive
+    );
+
+    // 4. Update Real-Time Chart
+    this.chart.pushData(
+      mcuResult.calibrated.ph,
+      mcuResult.calibrated.tds,
+      mcuResult.calibrated.turbidity
+    );
+
+    // 5. Update UI Dashboards & Components
+    this.updateDashboardUI(mcuResult, physicsResult);
+  }
+
+  updateDashboardUI(mcu, physics) {
+    // ADC Counts & Voltages readout
+    if (this.dom.adcPhTxt) {
+      this.dom.adcPhTxt.textContent = `ADC:${mcu.adc.filtered_adc.ph.toFixed(0)} (${mcu.adc.voltages.ph.toFixed(2)}V)`;
+    }
+    if (this.dom.adcTdsTxt) {
+      this.dom.adcTdsTxt.textContent = `ADC:${mcu.adc.filtered_adc.tds.toFixed(0)} (${mcu.adc.voltages.tds.toFixed(2)}V)`;
+    }
+    if (this.dom.adcTurbTxt) {
+      this.dom.adcTurbTxt.textContent = `ADC:${mcu.adc.filtered_adc.turbidity.toFixed(0)} (${mcu.adc.voltages.turbidity.toFixed(2)}V)`;
+    }
+
+    // System Health & State Badges
+    this.updateHealthBadge(mcu.health);
+    if (this.dom.fsmStateBadge) this.dom.fsmStateBadge.textContent = mcu.state;
+    if (this.dom.mcuUptimeTxt) this.dom.mcuUptimeTxt.textContent = `${mcu.uptime}s`;
+
+    // Active Alarms Render
+    this.renderAlarms(mcu.alarms);
+
+    // Treatment Stages List
+    this.renderTreatmentStages(mcu.stages, physics.stageHistory);
+
+    // GPIO Board LED states
+    this.updateGPIOBoard(mcu.gpio);
+
+    // Before vs After Comparison Card
+    this.renderComparisonTable(physics);
+
+    // Virtual Serial Monitor
+    if (!this.isSerialPaused && this.dom.serialOutput) {
+      this.dom.serialOutput.textContent = this.firmware.serialBuffer.join('\n');
+      this.dom.serialOutput.scrollTop = this.dom.serialOutput.scrollHeight;
+    }
+  }
+
+  updateHealthBadge(health) {
+    const badge = this.dom.masterStatusBadge;
+    if (!badge) return;
+
+    badge.className = 'status-badge';
+    if (health === 'SAFE') {
+      badge.classList.add('badge-safe');
+      badge.innerHTML = `<span class="indicator-dot dot-green"></span> SYSTEM SAFE - IS 10500 COMPLIANT`;
+    } else if (health === 'WARNING') {
+      badge.classList.add('badge-warning');
+      badge.innerHTML = `<span class="indicator-dot dot-amber"></span> WARNING - PERMISSIBLE THRESHOLD EXCEEDED`;
+    } else {
+      badge.classList.add('badge-critical');
+      badge.innerHTML = `<span class="indicator-dot dot-red"></span> CRITICAL - SEVERE CONTAMINATION DETECTED`;
+    }
+  }
+
+  renderAlarms(alarms) {
+    const container = this.dom.activeAlertsContainer;
+    if (!container) return;
+
+    if (alarms.length === 0) {
+      container.innerHTML = `
+        <div class="alarm-item alarm-none">
+          <span class="alarm-icon">✓</span>
+          <div class="alarm-content">
+            <div class="alarm-title">All Parameters Within Safe Indian Drinking Water Limits</div>
+            <div class="alarm-desc">No abnormal water quality anomalies detected. Routine monitoring active.</div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+    alarms.forEach(a => {
+      const isCrit = a.severity === 'CRITICAL';
+      html += `
+        <div class="alarm-item ${isCrit ? 'alarm-crit' : 'alarm-warn'}">
+          <span class="alarm-icon">${isCrit ? '⚠' : '⚡'}</span>
+          <div class="alarm-content">
+            <div class="alarm-title">${a.parameter} — [${a.code}] ${a.severity}</div>
+            <div class="alarm-desc">${a.message}</div>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  renderTreatmentStages(activeStages, stageHistory) {
+    const list = this.dom.treatmentStagesList;
+    if (!list) return;
+
+    let html = '';
+    stageHistory.forEach(s => {
+      const isActive = s.status === 'ACTIVE';
+      html += `
+        <div class="stage-card ${isActive ? 'stage-active' : 'stage-idle'}">
+          <div class="stage-header">
+            <span class="stage-name">${s.name}</span>
+            <span class="stage-status-pill ${isActive ? 'pill-active' : 'pill-idle'}">${s.status}</span>
+          </div>
+          <div class="stage-details">${s.effect || 'Media in standby.'}</div>
+        </div>
+      `;
+    });
+    list.innerHTML = html;
+  }
+
+  updateGPIOBoard(gpio) {
+    const ind = this.dom.gpioIndicators;
+    if (!ind) return;
+
+    const setLed = (el, state) => {
+      if (!el) return;
+      if (state === 1) {
+        el.classList.add('led-on');
+      } else {
+        el.classList.remove('led-on');
+      }
+    };
+
+    setLed(ind.pin18, gpio[18]);
+    setLed(ind.pin19, gpio[19]);
+    setLed(ind.pin21, gpio[21]);
+    setLed(ind.pin22, gpio[22]);
+    setLed(ind.pin23, gpio[23]);
+
+    // Analog pins always active when sampling
+    setLed(ind.pin34, 1);
+    setLed(ind.pin35, 1);
+    setLed(ind.pin36, 1);
+  }
+
+  renderComparisonTable(physics) {
+    const { raw, treated, efficiencies, compliance, labRaw, diverterActive, finalDestination } = physics;
+
+    // pH
+    if (this.dom.rawPhComp) this.dom.rawPhComp.textContent = raw.ph.toFixed(2);
+    if (this.dom.treatedPhComp) this.dom.treatedPhComp.textContent = treated.ph.toFixed(2);
+    if (this.dom.phEffComp) {
+      const phShift = treated.ph - raw.ph;
+      this.dom.phEffComp.textContent = phShift > 0 ? `+${phShift.toFixed(2)} (Buffered)` : `${phShift.toFixed(2)}`;
+    }
+    if (this.dom.phStatusComp) this.setBadgeStatus(this.dom.phStatusComp, compliance.checks.ph.status);
+
+    // TDS
+    if (this.dom.rawTdsComp) this.dom.rawTdsComp.textContent = `${Math.round(raw.tds)} ppm`;
+    if (this.dom.treatedTdsComp) this.dom.treatedTdsComp.textContent = `${treated.tds} ppm`;
+    if (this.dom.tdsEffComp) this.dom.tdsEffComp.textContent = `-${efficiencies.tds}%`;
+    if (this.dom.tdsStatusComp) this.setBadgeStatus(this.dom.tdsStatusComp, compliance.checks.tds.status);
+
+    // Turbidity
+    if (this.dom.rawTurbComp) this.dom.rawTurbComp.textContent = `${raw.turbidity.toFixed(1)} NTU`;
+    if (this.dom.treatedTurbComp) this.dom.treatedTurbComp.textContent = `${treated.turbidity.toFixed(2)} NTU`;
+    if (this.dom.turbEffComp) this.dom.turbEffComp.textContent = `-${efficiencies.turbidity}%`;
+    if (this.dom.turbStatusComp) this.setBadgeStatus(this.dom.turbStatusComp, compliance.checks.turbidity.status);
+
+    // Fluoride
+    const rawF = labRaw ? labRaw.fluoride : 0.4;
+    if (this.dom.rawFluorideComp) this.dom.rawFluorideComp.textContent = `${rawF.toFixed(2)} mg/L`;
+    if (this.dom.treatedFluorideComp) this.dom.treatedFluorideComp.textContent = `${treated.fluoride.toFixed(2)} mg/L`;
+    if (this.dom.fluorideEffComp) this.dom.fluorideEffComp.textContent = `-${efficiencies.fluoride}%`;
+    if (this.dom.fluorideStatusComp) this.setBadgeStatus(this.dom.fluorideStatusComp, compliance.checks.fluoride.status);
+
+    // Iron
+    const rawFe = labRaw ? labRaw.iron : 0.1;
+    if (this.dom.rawIronComp) this.dom.rawIronComp.textContent = `${rawFe.toFixed(2)} mg/L`;
+    if (this.dom.treatedIronComp) this.dom.treatedIronComp.textContent = `${treated.iron.toFixed(2)} mg/L`;
+    if (this.dom.ironEffComp) this.dom.ironEffComp.textContent = `-${efficiencies.iron}%`;
+    if (this.dom.ironStatusComp) this.setBadgeStatus(this.dom.ironStatusComp, compliance.checks.iron.status);
+
+    // Diverter Badge
+    if (this.dom.diverterStatusBadge) {
+      if (diverterActive) {
+        this.dom.diverterStatusBadge.textContent = "TRIPPED: RECIRCULATION DIVERTER (SV5)";
+        this.dom.diverterStatusBadge.className = "dest-badge dest-recirc";
+      } else {
+        this.dom.diverterStatusBadge.textContent = "AUTHORIZED: DISCHARGED TO SAFE POTABLE TANK";
+        this.dom.diverterStatusBadge.className = "dest-badge dest-safe";
+      }
+    }
+
+    if (this.dom.complianceRatingBadge) {
+      this.dom.complianceRatingBadge.textContent = compliance.rating;
+      this.dom.complianceRatingBadge.className = `rating-badge ${compliance.overallPass ? 'rate-pass' : 'rate-fail'}`;
+    }
+  }
+
+  setBadgeStatus(element, status) {
+    if (!element) return;
+    element.textContent = status;
+    element.className = 'status-tag';
+    if (status === 'PASS') element.classList.add('tag-pass');
+    else if (status === 'PERMISSIBLE') element.classList.add('tag-permissible');
+    else element.classList.add('tag-fail');
+  }
+}
+
+// Launch on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  window.aquaApp = new AquaSentinelApp();
+});
+
+</script>
+</body>
+
+</html>

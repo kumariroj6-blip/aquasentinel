@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaSentinel — Embedded Water Quality & Filtration Simulator (SIH)</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- TOP BAR & SCADA CONTROLLER STATUS -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="brand-icon">💧</div>
+      <div>
+        <h1 class="brand-title">AquaSentinel</h1>
+        <p class="brand-subtitle">SIH Round 1 Embedded Systems Prototype | Jharkhand Water Quality Initiative</p>
+      </div>
+    </div>
+
+    <div class="system-status-container">
+      <div id="masterStatusBadge" class="status-badge badge-safe">
+        <span class="indicator-dot dot-green"></span> SYSTEM SAFE - IS 10500 COMPLIANT
+      </div>
+      <div class="mcu-meta-pills">
+        <span class="meta-pill" id="fsmStateBadge">STATE_ACQUISITION</span>
+        <span class="meta-pill" id="coreFreqTxt">FreeRTOS 240MHz</span>
+        <span class="meta-pill">Uptime: <span id="mcuUptimeTxt">0.0s</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- JHARKHAND REGIONAL CONTAMINATION PRESETS -->
+  <section class="scenario-panel">
+    <div class="scenario-header-row">
+      <h2 class="panel-title">
+        <span>📍 Field Simulation Scenarios (Jharkhand Mining & Rural Belt)</span>
+      </h2>
+      <span class="region-tag" id="scenarioRegion">Ranchi Outskirts Groundwater</span>
+    </div>
+
+    <div class="scenario-btn-grid">
+      <button class="scenario-btn active" data-scenario="SCENARIO_NORMAL">
+        <span>Scenario 1: Clean Rural Well</span>
+        <span class="scenario-sub">Pristine (IS 10500 Compliant)</span>
+      </button>
+
+      <button class="scenario-btn" data-scenario="SCENARIO_TURBID_RUNOFF">
+        <span>Scenario 2: Monsoon Coal Runoff</span>
+        <span class="scenario-sub">High Turbidity (88 NTU Silt)</span>
+      </button>
+
+      <button class="scenario-btn" data-scenario="SCENARIO_ACID_MINE_DRAINAGE">
+        <span>Scenario 3: Dhanbad Acid Mine Drainage</span>
+        <span class="scenario-sub">Low pH 3.8, Iron 4.8 mg/L, High TDS</span>
+      </button>
+
+      <button class="scenario-btn" data-scenario="SCENARIO_FLUORIDE_BELT">
+        <span>Scenario 4: Palamu Fluorosis Aquifer</span>
+        <span class="scenario-sub">Toxic Fluoride (3.8 mg/L Geogenic)</span>
+      </button>
+
+      <button class="scenario-btn" data-scenario="SCENARIO_CRITICAL_MULTI">
+        <span>Scenario 5: Multi-Contaminant Seepage</span>
+        <span class="scenario-sub">Acidic + Turbid + Fe + As + TDS</span>
+      </button>
+    </div>
+
+    <div class="scenario-info-banner">
+      <strong id="scenarioTitle">Scenario 1: Clean Rural Aquifer (Normal)</strong> — 
+      <span id="scenarioDesc">Pristine groundwater passing all IS 10500:2012 drinking water standards. All treatment stages in standby/polishing mode.</span>
+    </div>
+  </section>
+
+  <!-- 2-COLUMN ROW: SENSOR ACQUISITION & VIRTUAL ESP32 MCU -->
+  <div class="main-grid-2col">
+    
+    <!-- LEFT: SENSOR ACQUISITION & LAB CONTAMINANT PANEL -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>📡 In-Situ Sensor Acquisition (Raw Water Interface)</span>
+        </h3>
+        <span class="meta-pill">12-Bit ADC Emulation (0-3.3V)</span>
+      </div>
+
+      <div class="sensor-sliders-grid">
+        <!-- pH Sensor -->
+        <div class="sensor-item">
+          <div class="sensor-header">
+            <span class="sensor-name">pH Sensor (DFRobot SEN0161)</span>
+            <span class="sensor-val" id="valPh">7.20</span>
+          </div>
+          <div class="sensor-adc-tag" id="adcPhTxt">ADC: 2048 (1.65V)</div>
+          <input type="range" id="sliderPh" min="2.0" max="12.0" step="0.1" value="7.2">
+        </div>
+
+        <!-- TDS Sensor -->
+        <div class="sensor-item">
+          <div class="sensor-header">
+            <span class="sensor-name">TDS Sensor (Analog Meter V1.0)</span>
+            <span class="sensor-val" id="valTds">280 ppm</span>
+          </div>
+          <div class="sensor-adc-tag" id="adcTdsTxt">ADC: 395 (0.32V)</div>
+          <input type="range" id="sliderTds" min="20" max="2000" step="10" value="280">
+        </div>
+
+        <!-- Turbidity Sensor -->
+        <div class="sensor-item">
+          <div class="sensor-header">
+            <span class="sensor-name">Turbidity Sensor (TS-300B Optical)</span>
+            <span class="sensor-val" id="valTurb">0.8 NTU</span>
+          </div>
+          <div class="sensor-adc-tag" id="adcTurbTxt">ADC: 3698 (2.98V)</div>
+          <input type="range" id="sliderTurb" min="0.1" max="120" step="0.5" value="0.8">
+        </div>
+
+        <!-- Water Temperature -->
+        <div class="sensor-item">
+          <div class="sensor-header">
+            <span class="sensor-name">Temperature (DS18B20 1-Wire)</span>
+            <span class="sensor-val" id="valTemp">24.5 °C</span>
+          </div>
+          <div class="sensor-adc-tag">Nernst Temperature Compensation</div>
+          <input type="range" id="sliderTemp" min="5" max="45" step="0.5" value="24.5">
+        </div>
+
+        <!-- Flow Rate -->
+        <div class="sensor-item" style="grid-column: span 2;">
+          <div class="sensor-header">
+            <span class="sensor-name">Flow Rate (YF-S201 Hall-Effect Meter)</span>
+            <span class="sensor-val" id="valFlow">12.0 L/m</span>
+          </div>
+          <div class="sensor-adc-tag">GPIO 16 Hardware Pulse Counter</div>
+          <input type="range" id="sliderFlow" min="0" max="30" step="0.5" value="12.0">
+        </div>
+      </div>
+
+      <!-- Lab-Confirmed Trace Contaminants (Dual-Tier Architecture) -->
+      <h4 class="lab-section-title">🧪 Lab-Confirmed Contaminant Profile (Jharkhand Mining Belt Input)</h4>
+      <div class="lab-grid">
+        <div class="lab-item">
+          <label>Fluoride (F⁻)</label>
+          <select class="lab-select" id="labFluorideSelect">
+            <option value="0.45">0.45 mg/L (Safe < 1.0)</option>
+            <option value="1.20">1.20 mg/L (Borderline)</option>
+            <option value="2.80">2.80 mg/L (Toxic High)</option>
+            <option value="3.80" selected>3.80 mg/L (Palamu Belt)</option>
+          </select>
+        </div>
+
+        <div class="lab-item">
+          <label>Total Iron (Fe²⁺/Fe³⁺)</label>
+          <select class="lab-select" id="labIronSelect">
+            <option value="0.12" selected>0.12 mg/L (Safe < 0.3)</option>
+            <option value="0.65">0.65 mg/L (Elevated)</option>
+            <option value="2.80">2.80 mg/L (Mine Seepage)</option>
+            <option value="4.80">4.80 mg/L (Dhanbad AMD)</option>
+          </select>
+        </div>
+
+        <div class="lab-item">
+          <label>Arsenic (As)</label>
+          <select class="lab-select" id="labArsenicSelect">
+            <option value="0.002" selected>0.002 mg/L (Safe < 0.01)</option>
+            <option value="0.025">0.025 mg/L (Warning > 0.01)</option>
+            <option value="0.045">0.045 mg/L (Critical High)</option>
+            <option value="0.080">0.080 mg/L (Lethal Divert)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: VIRTUAL ESP32 EMBEDDED CONTROLLER & SERIAL MONITOR -->
+    <section class="card mcu-panel">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>⚡ Simulated ESP32 Controller (FreeRTOS Dual-Core)</span>
+        </h3>
+        <span class="meta-pill">UART 115200 Baud</span>
+      </div>
+
+      <!-- Virtual ESP32 Hardware Status -->
+      <div class="esp32-visual-board">
+        <div class="esp32-header">
+          <span class="esp32-chip-badge">ESP32-WROOM-32D (240MHz Xtensa LX6)</span>
+          <span class="esp32-core-spec">Task: SensorTask [100Hz] | ControlTask [20Hz]</span>
+        </div>
+
+        <div class="gpio-pinout-row">
+          <!-- ADC Inputs -->
+          <div class="gpio-pin" title="ADC1_CH6: pH Sensor Probe">
+            <span class="pin-led led-on" id="gpio34Led"></span>
+            <span>GPIO34 (pH)</span>
+          </div>
+          <div class="gpio-pin" title="ADC1_CH7: TDS Sensor Probe">
+            <span class="pin-led led-on" id="gpio35Led"></span>
+            <span>GPIO35 (TDS)</span>
+          </div>
+          <div class="gpio-pin" title="ADC1_CH0: Turbidity Optical Sensor">
+            <span class="pin-led led-on" id="gpio36Led"></span>
+            <span>GPIO36 (TURB)</span>
+          </div>
+
+          <!-- Relay Actuators -->
+          <div class="gpio-pin" title="Relay 1: Solenoid SV1 (Inlet / Strainer)">
+            <span class="pin-led led-relay led-on" id="gpio18Led"></span>
+            <span>GPIO18 (SV1)</span>
+          </div>
+          <div class="gpio-pin" title="Relay 2: Solenoid SV2 (Sand / Anthracite)">
+            <span class="pin-led led-relay" id="gpio19Led"></span>
+            <span>GPIO19 (SV2)</span>
+          </div>
+          <div class="gpio-pin" title="Relay 3: Solenoid SV3 (Targeted Media: Al2O3/Birm/Calcite)">
+            <span class="pin-led led-relay" id="gpio21Led"></span>
+            <span>GPIO21 (SV3)</span>
+          </div>
+          <div class="gpio-pin" title="Relay 4: Solenoid SV4 (GAC Carbon Polisher)">
+            <span class="pin-led led-relay led-on" id="gpio22Led"></span>
+            <span>GPIO22 (SV4)</span>
+          </div>
+          <div class="gpio-pin" title="Relay 5: Solenoid SV5 (Recirculation / Diverter)">
+            <span class="pin-led led-relay" id="gpio23Led"></span>
+            <span>GPIO23 (SV5)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Virtual UART Serial Terminal -->
+      <div class="serial-console-card">
+        <div class="serial-console-toolbar">
+          <span class="serial-title">Virtual UART 115200 Baud Console</span>
+          <div class="serial-actions">
+            <button class="btn-console" id="btnPauseSerial">Pause Stream</button>
+            <button class="btn-console" id="btnCopySerial">Copy Logs</button>
+            <button class="btn-console" id="btnClearSerial">Clear</button>
+          </div>
+        </div>
+        <div class="serial-output" id="serialOutput"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- P&ID DYNAMIC ANIMATED PIPING & INSTRUMENTATION SCHEMATIC -->
+  <section class="pid-container-wrapper">
+    <div class="card-header" style="border: none; margin-bottom: 8px;">
+      <h3 class="card-title">
+        <span>🏭 Piping & Instrumentation Diagram (P&ID) — Multi-Stage Preventative Treatment Train</span>
+      </h3>
+      <span class="region-tag">Dynamic Fluid Flow & Solenoid Actuator Loop</span>
+    </div>
+    <div id="pidContainer"></div>
+  </section>
+
+  <!-- 2-COLUMN ROW: TREATMENT STAGE STATUS & REAL-TIME ALERTS -->
+  <div class="treatment-row-grid">
+    
+    <!-- Active Treatment Stages -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>⚙ Active Treatment Columns & Actuators</span>
+        </h3>
+        <span class="meta-pill">Relay Driver Subsystem</span>
+      </div>
+      <div class="stages-list" id="treatmentStagesList"></div>
+    </section>
+
+    <!-- Real-Time Alerts & IS 10500 Rule Engine -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>🚨 IS 10500:2012 Rule Engine & Safety Alerts</span>
+        </h3>
+        <span class="meta-pill">Anomaly Comparator</span>
+      </div>
+      <div class="active-alerts-box" id="activeAlertsContainer"></div>
+    </section>
+
+  </div>
+
+  <!-- 2-COLUMN ROW: BEFORE VS AFTER TREATMENT TABLE & LIVE OSCILLOSCOPE STRIP CHART -->
+  <div class="bottom-grid-2col">
+
+    <!-- Before vs After Verification Table -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>🔬 Water Quality Verification: Raw vs Treated Effluent</span>
+        </h3>
+        <span class="meta-pill">IS 10500 Compliance Loop</span>
+      </div>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Raw Water</th>
+            <th>Treated Effluent</th>
+            <th>Efficiency</th>
+            <th>IS 10500 Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>pH Value</td>
+            <td id="rawPhComp">7.20</td>
+            <td id="treatedPhComp">7.25</td>
+            <td id="phEffComp">Buffered</td>
+            <td><span class="status-tag tag-pass" id="phStatusComp">PASS</span></td>
+          </tr>
+          <tr>
+            <td>TDS (ppm)</td>
+            <td id="rawTdsComp">280 ppm</td>
+            <td id="treatedTdsComp">246 ppm</td>
+            <td id="tdsEffComp">-12%</td>
+            <td><span class="status-tag tag-pass" id="tdsStatusComp">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Turbidity (NTU)</td>
+            <td id="rawTurbComp">0.8 NTU</td>
+            <td id="treatedTurbComp">0.4 NTU</td>
+            <td id="turbEffComp">-50%</td>
+            <td><span class="status-tag tag-pass" id="turbStatusComp">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Fluoride (mg/L)</td>
+            <td id="rawFluorideComp">0.45 mg/L</td>
+            <td id="treatedFluorideComp">0.38 mg/L</td>
+            <td id="fluorideEffComp">-15%</td>
+            <td><span class="status-tag tag-pass" id="fluorideStatusComp">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Iron (mg/L)</td>
+            <td id="rawIronComp">0.12 mg/L</td>
+            <td id="treatedIronComp">0.08 mg/L</td>
+            <td id="ironEffComp">-33%</td>
+            <td><span class="status-tag tag-pass" id="ironStatusComp">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="destination-bar">
+        <div id="diverterStatusBadge" class="dest-badge dest-safe">
+          AUTHORIZED: DISCHARGED TO SAFE STORAGE TANK
+        </div>
+        <div id="complianceRatingBadge" class="rating-badge rate-pass">
+          IS 10500 COMPLIANT (DRINKABLE)
+        </div>
+      </div>
+    </section>
+
+    <!-- Canvas Strip-Chart Oscilloscope -->
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>📈 Multi-Channel Real-Time Telemetry Oscilloscope</span>
+        </h3>
+        <div class="chart-controls">
+          <button class="chart-filter-btn active" data-channel="ALL">ALL</button>
+          <button class="chart-filter-btn" data-channel="PH">pH</button>
+          <button class="chart-filter-btn" data-channel="TDS">TDS</button>
+          <button class="chart-filter-btn" data-channel="TURB">Turb</button>
+        </div>
+      </div>
+      <div class="canvas-chart-wrapper">
+        <canvas id="telemetryCanvas"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- EMBEDDED HARDWARE MIGRATION GUIDE & BOM (FOR SIH ROUND 2 PRESENTATION) -->
+  <section class="hardware-guide-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <span>🛠 Hardware Migration Roadmap: Transitioning from Simulator to Physical ESP32 (SIH Round 2)</span>
+      </h3>
+      <span class="region-tag">EE & Embedded Engineering Guide</span>
+    </div>
+
+    <div class="guide-grid">
+      <div class="guide-block">
+        <h4>1. Bill of Materials (BOM) & Sensor Selection</h4>
+        <ul>
+          <li><strong>Microcontroller:</strong> ESP32 DevKit V1 (30-pin, dual-core 240MHz, built-in WiFi/BLE).</li>
+          <li><strong>pH Probe:</strong> DFRobot Gravity Analog pH Sensor (SEN0161) with BNC connector probe.</li>
+          <li><strong>TDS Meter:</strong> DFRobot Gravity Analog TDS Sensor (0-1000 ppm, 3.3V/5V compatible).</li>
+          <li><strong>Turbidity Sensor:</strong> DFRobot Gravity TS-300B Optical Turbidity Sensor (0-3000 NTU).</li>
+          <li><strong>Temperature:</strong> DS18B20 waterproof digital probe (Dallas 1-Wire protocol with 4.7kΩ pull-up).</li>
+          <li><strong>Actuators:</strong> 5-Channel 5V Optocoupled Relay Module controlling 12V DC Normally-Closed Solenoid Valves.</li>
+          <li><strong>ADC Note:</strong> For higher 16-bit analog resolution, an external I2C <strong>ADS1115</strong> ADC module can replace internal ESP32 ADC1 to eliminate non-linear ADC attenuation.</li>
+        </ul>
+      </div>
+
+      <div class="guide-block">
+        <h4>2. Circuit & Power Architecture</h4>
+        <ul>
+          <li><strong>Power Isolation:</strong> Dual power supply rail — 5V/2A regulated logic supply for ESP32/sensors, and 12V/3A high-current supply for solenoid valves.</li>
+          <li><strong>Flyback Protection:</strong> 1N4007 flyback diodes wired across each 12V solenoid coil to suppress inductive voltage spikes during relay cutoff.</li>
+          <li><strong>Relay Optocoupler Isolation:</strong> JD-VCC jumper separated on relay board to prevent relay coil transients from resetting the ESP32.</li>
+          <li><strong>Calibration Procedure:</strong> Standard 2-point buffer calibration for pH (pH 4.01 and 7.00 buffers) stored in ESP32 Non-Volatile Storage (NVS Flash).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCRIPTS -->
+  <script src="js/firmware_mcu.js"></script>
+  <script src="js/water_physics.js"></script>
+  <script src="js/pid_renderer.js"></script>
+  <script src="js/telemetry_charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

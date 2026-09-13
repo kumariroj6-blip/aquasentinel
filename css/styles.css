@@ -1,0 +1,903 @@
+/* ==========================================================================
+   AquaSentinel - Industrial SCADA & Embedded Engineering Theme
+   High-Contrast Dark Mode with Cyber-Industrial Accents
+   ========================================================================== */
+
+:root {
+  --bg-primary: #070b14;
+  --bg-secondary: #0d1527;
+  --bg-card: #111d35;
+  --bg-card-hover: #162544;
+  --border-dim: #1e3156;
+  --border-bright: #2d4879;
+  
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --accent-cyan: #00f2fe;
+  --accent-blue: #38bdf8;
+  --accent-green: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #a855f7;
+
+  --glow-cyan: 0 0 15px rgba(0, 242, 254, 0.4);
+  --glow-green: 0 0 15px rgba(16, 185, 129, 0.4);
+  --glow-red: 0 0 18px rgba(239, 68, 68, 0.5);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   TOP BAR & BRANDING
+   ========================================================================== */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #00f2fe, #4facfe);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--glow-cyan);
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, #ffffff, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.system-status-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.badge-safe {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+
+.badge-critical {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.7);
+  color: #f87171;
+  animation: pulseCrit 1.5s infinite;
+}
+
+@keyframes pulseCrit {
+  0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.7); }
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dot-green { background: #10b981; box-shadow: 0 0 8px #10b981; }
+.dot-amber { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+.dot-red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+.mcu-meta-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.meta-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+}
+
+/* ==========================================================================
+   SCENARIO SELECTOR BAR
+   ========================================================================== */
+.scenario-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.scenario-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.region-tag {
+  font-size: 11px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--accent-blue);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.scenario-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.scenario-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scenario-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+}
+
+.scenario-btn.active {
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(79, 172, 254, 0.25));
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+}
+
+.scenario-sub {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.scenario-info-banner {
+  background: rgba(15, 23, 42, 0.7);
+  border-left: 3px solid var(--accent-cyan);
+  padding: 10px 14px;
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.scenario-info-banner strong {
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   GRID LAYOUT: SENSORS & EMBEDDED MCU
+   ========================================================================== */
+.main-grid-2col {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1050px) {
+  .main-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 10px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sensor-sliders-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 600px) {
+  .sensor-sliders-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sensor-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.sensor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.sensor-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sensor-val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.sensor-adc-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 5px;
+  border-radius: 4px;
+  background: #1e293b;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 6px var(--accent-cyan);
+  cursor: pointer;
+}
+
+/* Lab Contaminants Selection */
+.lab-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #e2e8f0;
+  margin: 10px 0 8px;
+}
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.lab-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.lab-item label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.lab-select {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid var(--border-bright);
+  color: var(--text-primary);
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  outline: none;
+}
+
+/* ==========================================================================
+   VIRTUAL ESP32 MCU & SERIAL TERMINAL
+   ========================================================================== */
+.mcu-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.esp32-visual-board {
+  background: #0a0e17;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.esp32-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.esp32-chip-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #38bdf8;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.esp32-core-spec {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.gpio-pinout-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gpio-pin {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.pin-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #374151;
+  transition: all 0.2s ease;
+}
+
+.pin-led.led-on {
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+}
+
+.pin-led.led-relay {
+  background: #4b5563;
+}
+
+.pin-led.led-relay.led-on {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+
+/* Virtual Serial Console */
+.serial-console-card {
+  background: #050811;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  height: 180px;
+  overflow: hidden;
+}
+
+.serial-console-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f172a;
+  padding: 6px 12px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.serial-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.serial-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-console {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.btn-console:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.btn-warn {
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+.serial-output {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #38bdf8;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   P&ID ANIMATED SCHEMATIC
+   ========================================================================== */
+.pid-container-wrapper {
+  background: #080d1a;
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.pid-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Flow animation keyframes */
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.flow-pulse {
+  stroke-dasharray: 8, 4;
+  animation: dashFlow 1.2s linear infinite;
+}
+
+.flow-pulse-recirc {
+  animation: dashFlow 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   TREATMENT STAGES & ALERTS ROW
+   ========================================================================== */
+.treatment-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .treatment-row-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stage-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 10px 14px;
+  transition: all 0.2s ease;
+}
+
+.stage-card.stage-active {
+  border-color: var(--accent-cyan);
+  background: linear-gradient(90deg, rgba(0, 242, 254, 0.08), transparent);
+}
+
+.stage-card.stage-idle {
+  opacity: 0.6;
+}
+
+.stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.stage-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stage-status-pill {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.pill-active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.pill-idle {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+}
+
+.stage-details {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Alerts Box */
+.active-alerts-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.alarm-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.alarm-none {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.alarm-warn {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.alarm-crit {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
+}
+
+.alarm-icon {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.alarm-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.alarm-desc {
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   COMPARISON TABLE & TELEMETRY CHARTS
+   ========================================================================== */
+.bottom-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 980px) {
+  .bottom-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.comp-table th {
+  background: #0f172a;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 10px;
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.comp-table td {
+  padding: 8px;
+  border-bottom: 1px solid #1e293b;
+  font-family: var(--font-mono);
+}
+
+.comp-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.tag-pass { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.tag-permissible { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.tag-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+.destination-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.dest-badge {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+.dest-safe {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+}
+.dest-recirc {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.rating-badge {
+  font-size: 10px;
+  text-align: center;
+  font-weight: 600;
+  padding: 4px;
+  border-radius: 4px;
+}
+.rate-pass { color: var(--accent-green); }
+.rate-fail { color: var(--accent-red); }
+
+/* Canvas Strip Chart */
+.chart-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.chart-filter-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chart-filter-btn.active {
+  background: var(--accent-blue);
+  color: #000000;
+  border-color: var(--accent-blue);
+}
+
+.canvas-chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: #050811;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#telemetryCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ==========================================================================
+   HARDWARE MIGRATION GUIDE & BOM ACCORDION / FOOTER
+   ========================================================================== */
+.hardware-guide-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 16px;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+@media (max-width: 800px) {
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.guide-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 12px;
+}
+
+.guide-block h4 {
+  color: var(--accent-cyan);
+  font-size: 13px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guide-block ul {
+  padding-left: 18px;
+  color: var(--text-secondary);
+}
+
+.guide-block li {
+  margin-bottom: 6px;
+}
+
+.code-snippet-box {
+  background: #050811;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #38bdf8;
+  margin-top: 8px;
+  overflow-x: auto;
+}
