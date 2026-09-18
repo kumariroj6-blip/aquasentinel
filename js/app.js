@@ -12,35 +12,70 @@ const PRESET_SCENARIOS = {
     name: "Scenario 1: Clean Rural Aquifer (Normal)",
     description: "Pristine groundwater passing all IS 10500:2012 drinking water standards. All treatment stages in standby/polishing mode.",
     raw: { ph: 7.20, tds: 280, turbidity: 0.8, temperature: 24.5, flow: 12.0 },
-    lab: { fluoride: 0.45, iron: 0.12, arsenic: 0.002, region: "Ranchi Outskirts Groundwater" }
+    lab: { fluoride: 0.45, iron: 0.12, arsenic: 0.002, region: "Ranchi Outskirts Groundwater" },
+    location: {
+      village: "Kanke Rural Block, Ranchi Outskirts",
+      district: "Ranchi",
+      state: "Jharkhand",
+      lat: 23.4350,
+      long: 85.3210
+    }
   },
   SCENARIO_TURBID_RUNOFF: {
     id: "SCENARIO_TURBID_RUNOFF",
     name: "Scenario 2: Monsoon Mining Runoff (Turbid)",
     description: "Heavy silt and suspended colloidal matter (> 85 NTU) washed from opencast coal pit surfaces into local village ponds during monsoon rains.",
     raw: { ph: 6.90, tds: 420, turbidity: 88.0, temperature: 26.0, flow: 14.5 },
-    lab: { fluoride: 0.60, iron: 0.25, arsenic: 0.003, region: "Dhanbad Opencast Coalfield Runoff" }
+    lab: { fluoride: 0.60, iron: 0.25, arsenic: 0.003, region: "Dhanbad Opencast Coalfield Runoff" },
+    location: {
+      village: "Baghmara Opencast Pit Buffer",
+      district: "Dhanbad",
+      state: "Jharkhand",
+      lat: 23.7957,
+      long: 86.2081
+    }
   },
   SCENARIO_ACID_MINE_DRAINAGE: {
     id: "SCENARIO_ACID_MINE_DRAINAGE",
     name: "Scenario 3: Dhanbad Acid Mine Drainage (AMD)",
     description: "Pyrite (FeS2) oxidation generates low pH acidic water (pH 3.8) with heavy dissolved ferrous/ferric iron (4.5 mg/L) and elevated sulfate mineralization.",
     raw: { ph: 3.80, tds: 1350, turbidity: 34.0, temperature: 27.5, flow: 10.0 },
-    lab: { fluoride: 0.80, iron: 4.80, arsenic: 0.008, region: "Jharia / Dhanbad Deep Mine Seepage" }
+    lab: { fluoride: 0.80, iron: 4.80, arsenic: 0.008, region: "Jharia / Dhanbad Deep Mine Seepage" },
+    location: {
+      village: "Jharia Colliery Drainage Zone",
+      district: "Dhanbad",
+      state: "Jharkhand",
+      lat: 23.7410,
+      long: 86.4150
+    }
   },
   SCENARIO_FLUORIDE_BELT: {
     id: "SCENARIO_FLUORIDE_BELT",
     name: "Scenario 4: Palamu Fluorosis Aquifer (Fluoride)",
     description: "High geogenic fluoride leaching from granite/gneiss bedrocks in Palamu/Garhwa belt (3.8 mg/L). Causes dental and crippling skeletal fluorosis without treatment.",
     raw: { ph: 7.90, tds: 820, turbidity: 3.2, temperature: 25.0, flow: 11.0 },
-    lab: { fluoride: 3.80, iron: 0.20, arsenic: 0.004, region: "Palamu/Daltonganj Deep Borewell" }
+    lab: { fluoride: 3.80, iron: 0.20, arsenic: 0.004, region: "Palamu/Daltonganj Deep Borewell" },
+    location: {
+      village: "Daltonganj Deep Aquifer Point",
+      district: "Palamu",
+      state: "Jharkhand",
+      lat: 24.0370,
+      long: 84.0720
+    }
   },
   SCENARIO_CRITICAL_MULTI: {
     id: "SCENARIO_CRITICAL_MULTI",
     name: "Scenario 5: Multi-Contaminant Mining Seepage",
     description: "Severe combined contamination: Acidic pH (4.8), heavy colloidal silt (65 NTU), high mineralization (1650 ppm TDS), elevated Iron (3.4 mg/L), and trace Arsenic.",
     raw: { ph: 4.80, tds: 1650, turbidity: 65.0, temperature: 28.0, flow: 8.5 },
-    lab: { fluoride: 2.10, iron: 3.40, arsenic: 0.045, region: "Chaibasa / West Singhbhum Mineral Belt" }
+    lab: { fluoride: 2.10, iron: 3.40, arsenic: 0.045, region: "Chaibasa / West Singhbhum Mineral Belt" },
+    location: {
+      village: "Noamundi Iron Ore Seepage Zone",
+      district: "West Singhbhum",
+      state: "Jharkhand",
+      lat: 22.1460,
+      long: 85.4920
+    }
   }
 };
 
@@ -53,6 +88,7 @@ class AquaSentinelApp {
 
     // Current State Variables
     this.currentScenarioKey = 'SCENARIO_NORMAL';
+    this.currentLocation = { ...PRESET_SCENARIOS.SCENARIO_NORMAL.location };
     this.rawSensors = { ...PRESET_SCENARIOS.SCENARIO_NORMAL.raw };
     this.labProfile = { ...PRESET_SCENARIOS.SCENARIO_NORMAL.lab };
     this.isSerialPaused = false;
@@ -75,6 +111,22 @@ class AquaSentinelApp {
       scenarioTitle: document.getElementById('scenarioTitle'),
       scenarioDesc: document.getElementById('scenarioDesc'),
       scenarioRegion: document.getElementById('scenarioRegion'),
+
+      // Location / GPS elements
+      locVillageTxt: document.getElementById('locVillageTxt'),
+      locDistrictTxt: document.getElementById('locDistrictTxt'),
+      locStateTxt: document.getElementById('locStateTxt'),
+      locGpsTxt: document.getElementById('locGpsTxt'),
+      btnUseDeviceGps: document.getElementById('btnUseDeviceGps'),
+      btnEditLocation: document.getElementById('btnEditLocation'),
+      locationDisplayGrid: document.getElementById('locationDisplayGrid'),
+      locationEditGrid: document.getElementById('locationEditGrid'),
+      inputLocVillage: document.getElementById('inputLocVillage'),
+      inputLocDistrict: document.getElementById('inputLocDistrict'),
+      inputLocLat: document.getElementById('inputLocLat'),
+      inputLocLong: document.getElementById('inputLocLong'),
+      btnSaveLocation: document.getElementById('btnSaveLocation'),
+      btnCancelLocation: document.getElementById('btnCancelLocation'),
 
       // Sliders & Inputs
       sliderPh: document.getElementById('sliderPh'),
@@ -234,6 +286,81 @@ class AquaSentinelApp {
         this.chart.setFilter(ch);
       });
     });
+
+    // Location / GPS Event Handlers
+    if (this.dom.btnUseDeviceGps) {
+      this.dom.btnUseDeviceGps.addEventListener('click', () => {
+        if ("geolocation" in navigator) {
+          this.dom.btnUseDeviceGps.textContent = "⏳ Detecting...";
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              this.currentLocation.lat = parseFloat(pos.coords.latitude.toFixed(4));
+              this.currentLocation.long = parseFloat(pos.coords.longitude.toFixed(4));
+              this.currentLocation.village = "Current Field Location";
+              this.currentLocation.district = "Live GPS Sensor Node";
+              this.currentLocation.state = "Jharkhand";
+              this.updateLocationDisplay();
+              this.dom.btnUseDeviceGps.textContent = "📡 GPS Synced!";
+              this.firmware.logSerial("GPS_LOC", `Device GPS Synced: Lat ${this.currentLocation.lat}° N, Long ${this.currentLocation.long}° E`);
+              setTimeout(() => {
+                this.dom.btnUseDeviceGps.textContent = "📡 Use Current Location";
+              }, 2500);
+            },
+            (err) => {
+              alert("Unable to access device GPS (Permission denied or timeout). Using sample field coordinates.");
+              this.dom.btnUseDeviceGps.textContent = "📡 Use Current Location";
+            },
+            { timeout: 8000 }
+          );
+        } else {
+          alert("Browser geolocation not supported on this device.");
+        }
+      });
+    }
+
+    if (this.dom.btnEditLocation) {
+      this.dom.btnEditLocation.addEventListener('click', () => {
+        const isEditing = this.dom.locationEditGrid.style.display !== 'none';
+        this.dom.locationEditGrid.style.display = isEditing ? 'none' : 'grid';
+        this.dom.locationDisplayGrid.style.display = isEditing ? 'grid' : 'none';
+        this.dom.btnEditLocation.textContent = isEditing ? "✏️ Edit Location" : "✖ Close Edit";
+      });
+    }
+
+    if (this.dom.btnSaveLocation) {
+      this.dom.btnSaveLocation.addEventListener('click', () => {
+        this.currentLocation.village = this.dom.inputLocVillage.value || "Sample Village";
+        this.currentLocation.district = this.dom.inputLocDistrict.value || "Ranchi";
+        this.currentLocation.lat = parseFloat(this.dom.inputLocLat.value) || 23.4350;
+        this.currentLocation.long = parseFloat(this.dom.inputLocLong.value) || 85.3210;
+        this.updateLocationDisplay();
+        this.dom.locationEditGrid.style.display = 'none';
+        this.dom.locationDisplayGrid.style.display = 'grid';
+        this.dom.btnEditLocation.textContent = "✏️ Edit Location";
+        this.firmware.logSerial("GPS_LOC", `Location Manual Update: ${this.currentLocation.village}, ${this.currentLocation.district} [${this.currentLocation.lat}°N, ${this.currentLocation.long}°E]`);
+      });
+    }
+
+    if (this.dom.btnCancelLocation) {
+      this.dom.btnCancelLocation.addEventListener('click', () => {
+        this.updateLocationDisplay();
+        this.dom.locationEditGrid.style.display = 'none';
+        this.dom.locationDisplayGrid.style.display = 'grid';
+        this.dom.btnEditLocation.textContent = "✏️ Edit Location";
+      });
+    }
+  }
+
+  updateLocationDisplay() {
+    if (this.dom.locVillageTxt) this.dom.locVillageTxt.textContent = this.currentLocation.village;
+    if (this.dom.locDistrictTxt) this.dom.locDistrictTxt.textContent = this.currentLocation.district;
+    if (this.dom.locStateTxt) this.dom.locStateTxt.textContent = this.currentLocation.state || "Jharkhand";
+    if (this.dom.locGpsTxt) this.dom.locGpsTxt.textContent = `${this.currentLocation.lat.toFixed(4)}° N, ${this.currentLocation.long.toFixed(4)}° E`;
+
+    if (this.dom.inputLocVillage) this.dom.inputLocVillage.value = this.currentLocation.village;
+    if (this.dom.inputLocDistrict) this.dom.inputLocDistrict.value = this.currentLocation.district;
+    if (this.dom.inputLocLat) this.dom.inputLocLat.value = this.currentLocation.lat;
+    if (this.dom.inputLocLong) this.dom.inputLocLong.value = this.currentLocation.long;
   }
 
   loadScenario(scenarioKey) {
@@ -243,6 +370,10 @@ class AquaSentinelApp {
     this.currentScenarioKey = scenarioKey;
     this.rawSensors = { ...sc.raw };
     this.labProfile = { ...sc.lab };
+    if (sc.location) {
+      this.currentLocation = { ...sc.location };
+      this.updateLocationDisplay();
+    }
 
     // Update Buttons UI
     this.dom.scenarioButtons.forEach(btn => {
@@ -272,6 +403,9 @@ class AquaSentinelApp {
 
     this.updateSliderDisplays();
     this.firmware.logSerial("SCENARIO", `Loaded Preset Profile: [${sc.name}]`);
+    if (sc.location) {
+      this.firmware.logSerial("GPS_LOC", `Field Site: ${sc.location.village}, ${sc.location.district} [${sc.location.lat.toFixed(4)}°N, ${sc.location.long.toFixed(4)}°E]`);
+    }
   }
 
   updateSliderDisplays() {

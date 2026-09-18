@@ -901,3 +901,179 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: 8px;
   overflow-x: auto;
 }
+
+/* ==========================================================================
+   WATER TESTING LOCATION / GPS CARD
+   ========================================================================== */
+.location-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.location-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.location-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.location-pin-badge {
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.location-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.location-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-location {
+  background: var(--bg-card);
+  border: 1px solid var(--border-bright);
+  color: var(--accent-cyan);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-location:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.2);
+}
+
+.btn-location-sec {
+  color: var(--text-secondary);
+}
+
+.btn-save {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--accent-green);
+  color: #34d399;
+}
+
+.btn-cancel {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--accent-red);
+  color: #fca5a5;
+}
+
+.location-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 0.8fr 1.3fr;
+  gap: 12px;
+}
+
+@media (max-width: 850px) {
+  .location-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .location-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.loc-card-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loc-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.loc-val {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.loc-coords {
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+}
+
+.location-edit-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+@media (max-width: 750px) {
+  .location-edit-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.loc-input-group label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.loc-input {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid var(--border-bright);
+  color: var(--text-primary);
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  outline: none;
+  font-family: var(--font-sans);
+}
+
+.loc-input:focus {
+  border-color: var(--accent-cyan);
+}
+
+.loc-edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  grid-column: span 4;
+}
+

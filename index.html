@@ -75,6 +75,76 @@
     </div>
   </section>
 
+  <!-- WATER TESTING LOCATION / GPS CARD -->
+  <section class="location-panel">
+    <div class="location-header-row">
+      <div class="location-title-group">
+        <span class="location-pin-badge">📍</span>
+        <div>
+          <h2 class="panel-title" style="margin-bottom: 2px;">
+            <span>Water Testing Location & GPS Tag</span>
+          </h2>
+          <span class="location-subtitle">Sample Source Geolocation linked to water quality sensor telemetry</span>
+        </div>
+      </div>
+      <div class="location-actions">
+        <button id="btnUseDeviceGps" class="btn-location" title="Detect GPS coordinates using device location">
+          <span>📡 Use Current Location</span>
+        </button>
+        <button id="btnEditLocation" class="btn-location btn-location-sec" title="Edit location details manually">
+          <span>✏️ Edit Location</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Display Mode -->
+    <div class="location-grid" id="locationDisplayGrid">
+      <div class="loc-card-item">
+        <span class="loc-label">Village / Area</span>
+        <span class="loc-val" id="locVillageTxt">Kanke Rural Block, Ranchi Outskirts</span>
+      </div>
+
+      <div class="loc-card-item">
+        <span class="loc-label">District</span>
+        <span class="loc-val" id="locDistrictTxt">Ranchi</span>
+      </div>
+
+      <div class="loc-card-item">
+        <span class="loc-label">State</span>
+        <span class="loc-val" id="locStateTxt">Jharkhand</span>
+      </div>
+
+      <div class="loc-card-item">
+        <span class="loc-label">GPS Coordinates</span>
+        <span class="loc-val loc-coords" id="locGpsTxt">23.4350° N, 85.3210° E</span>
+      </div>
+    </div>
+
+    <!-- Edit Mode (Inline and simple, hidden by default) -->
+    <div class="location-edit-grid" id="locationEditGrid" style="display: none;">
+      <div class="loc-input-group">
+        <label>Village / Area</label>
+        <input type="text" id="inputLocVillage" class="loc-input" value="Kanke Rural Block, Ranchi Outskirts">
+      </div>
+      <div class="loc-input-group">
+        <label>District</label>
+        <input type="text" id="inputLocDistrict" class="loc-input" value="Ranchi">
+      </div>
+      <div class="loc-input-group">
+        <label>Latitude (° N)</label>
+        <input type="number" step="0.0001" id="inputLocLat" class="loc-input" value="23.4350">
+      </div>
+      <div class="loc-input-group">
+        <label>Longitude (° E)</label>
+        <input type="number" step="0.0001" id="inputLocLong" class="loc-input" value="85.3210">
+      </div>
+      <div class="loc-edit-actions">
+        <button id="btnSaveLocation" class="btn-location btn-save">✓ Save</button>
+        <button id="btnCancelLocation" class="btn-location btn-cancel">Cancel</button>
+      </div>
+    </div>
+  </section>
+
   <!-- 2-COLUMN ROW: SENSOR ACQUISITION & VIRTUAL ESP32 MCU -->
   <div class="main-grid-2col">
     
